@@ -1,0 +1,256 @@
+https://chatgpt.com/g/g-p-679637c3f7248191939252d7c3f6360c-library-of-babel/c/67820663-9a48-8001-9876-1d8c096df53c
+
+Below is a **complete** Python example that you can copy and paste **directly** into a new [Replit](https://replit.com/) project. This code implements a **genetic algorithm** to (attempt to) search [libraryofbabel.info](https://libraryofbabel.info/) for semantically coherent pages. It uses:
+
+- **requests** + **BeautifulSoup** for scraping,
+- **transformers** + **torch** for the semantic embedding model (MiniLM),
+- **random** for generating random page IDs and mutations,  
+- A standard evolutionary loop.
+
+> **Important**: 
+> - The Library of Babel website does **not** officially provide a bulk API, and large-scale scraping may violate usage policies. Use this example only as a **proof-of-concept**.  
+> - Running heavy transformers in Replit’s free tier may be slow or exceed memory limits.  
+> - This is an illustrative demo, *not* a production-ready system.  
+
+---
+
+## Step-by-Step Instructions
+
+1. **Create a new Replit**  
+   - Go to [Replit](https://replit.com/), click **Create Repl**, and choose **Python** as the template.
+
+2. **Install Dependencies**  
+   - In your Replit **Shell** (bottom-right pane or via the console icon), type:  
+     ```bash
+     pip install requests beautifulsoup4 transformers torch
+     ```
+   - Wait for the installation to complete.
+
+3. **Paste the Code Below**  
+   - Select all the code in the **`main.py`** file (or rename your default file to `main.py`) and replace it with the code snippet provided below.
+
+4. **Run the Program**  
+   - Click the green **Run** button at the top of your Replit.  
+   - The code will:
+     1. Initialize a random population of “page IDs.”  
+     2. Pull each page from libraryofbabel.info (if accessible).  
+     3. Compute a “semantic coherence” score for each page using a small transformer model.  
+     4. Evolve the population over a few generations, hopefully improving average coherence.  
+   - You’ll see periodic prints of the best page ID and its score at each generation.
+
+5. **Review Output**  
+   - The final lines will show the top few pages found. If they appear semi-coherent, you can open them in your browser to see if the text is indeed meaningful:
+     ```
+     https://libraryofbabel.info/book.cgi?<PAGE_ID>
+     ```
+
+> **Note**: This code may be slow or memory-intensive on Replit’s free tier. If you encounter issues, try reducing the population size or the number of generations.
+
+---
+
+## `main.py` Code to Copy & Paste
+
+```python
+import requests
+from bs4 import BeautifulSoup
+import random
+import torch
+from transformers import AutoTokenizer, AutoModel
+
+##############################
+# CONFIGURATIONS & GLOBALS
+##############################
+
+# If your Replit session times out, you can reduce these:
+POPULATION_SIZE = 10     # Number of page IDs per generation
+NUM_GENERATIONS = 5      # How many evolutionary cycles to run
+KEEP_RATIO = 0.5         # Fraction of top scorers to keep as parents
+MUTATION_RATE = 0.02     # Probability to flip each hex digit
+
+# The Library of Babel page ID length (in hex) – commonly 32 or 320 chars, etc.
+# Adjust if the site uses a different format.
+PAGE_ID_LENGTH = 32
+
+##############################
+# STEP 1: SCRAPER FUNCTION
+##############################
+def get_page_text(page_id: str) -> str:
+    """
+    Retrieves the text from a Library of Babel page given its page ID.
+    Adjust the URL pattern or query parameters if the site structure changes.
+    """
+    # The URL format for libraryofbabel.info can vary. This is a guess/example:
+    url = f"https://libraryofbabel.info/book.cgi?{page_id}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            page_content_div = soup.find("div", {"id": "page"})
+            if page_content_div:
+                return page_content_div.get_text()
+        return ""
+    except requests.exceptions.RequestException:
+        return ""
+
+##############################
+# STEP 2: EMBEDDING MODEL
+##############################
+
+print("Loading embedding model (this may take a while)...")
+tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+model.eval()
+print("Model loaded.")
+
+def get_semantic_score(text: str) -> float:
+    """
+    Returns a numerical "fitness" that correlates with text coherence.
+    Higher = more coherent / meaningful.
+    Uses a simple embedding-based approach with the MiniLM model.
+    """
+    if not text.strip():
+        return 0.0
+
+    # Truncate text so we don't blow up memory:
+    # We only need a snippet to gauge coherence.
+    truncated_text = text[:1000]
+
+    inputs = tokenizer(truncated_text, return_tensors='pt', truncation=True, max_length=256)
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Mean-pool the token embeddings (simplistic approach)
+    token_embeddings = outputs.last_hidden_state
+    sentence_embedding = token_embeddings.mean(dim=1).squeeze()  # shape: (768,) for MiniLM
+
+    # We'll use the norm as a rough proxy (higher norm => more coherent, typically).
+    norm_val = torch.norm(sentence_embedding).item()
+    return float(norm_val)
+
+##############################
+# STEP 3: GENETIC OPERATIONS
+##############################
+
+def random_page_id(length=PAGE_ID_LENGTH):
+    """Generates a random hex string of the specified length."""
+    return ''.join(random.choice('0123456789abcdef') for _ in range(length))
+
+def mutate(page_id, mutation_rate=MUTATION_RATE):
+    """
+    Randomly flips hex digits according to mutation_rate.
+    """
+    page_chars = list(page_id)
+    for i in range(len(page_chars)):
+        if random.random() < mutation_rate:
+            possible_digits = [d for d in '0123456789abcdef' if d != page_chars[i]]
+            page_chars[i] = random.choice(possible_digits)
+    return ''.join(page_chars)
+
+def crossover(parent1_id, parent2_id):
+    """
+    Simple crossover: Take first half from parent1, second half from parent2.
+    """
+    length = len(parent1_id)
+    cross_point = length // 2
+    child_id = parent1_id[:cross_point] + parent2_id[cross_point:]
+    return child_id
+
+##############################
+# STEP 4: EVOLUTION LOOP
+##############################
+
+def evaluate_population(population):
+    """
+    Retrieve page text, compute semantic fitness, return list of (page_id, score).
+    """
+    results = []
+    for page_id in population:
+        text = get_page_text(page_id)
+        score = get_semantic_score(text)
+        results.append((page_id, score))
+    return results
+
+def select_parents(evaluated_population, keep_ratio=KEEP_RATIO):
+    """
+    Sort by fitness descending, keep the top portion as parents.
+    """
+    sorted_pop = sorted(evaluated_population, key=lambda x: x[1], reverse=True)
+    keep_count = max(1, int(len(sorted_pop) * keep_ratio))
+    return sorted_pop[:keep_count]
+
+def breed_population(parents, new_size):
+    """
+    Create a new population from parents via crossover.
+    """
+    new_population = []
+    parent_ids = [p[0] for p in parents]  # extract page_id strings
+    while len(new_population) < new_size:
+        p1 = random.choice(parent_ids)
+        p2 = random.choice(parent_ids)
+        child = crossover(p1, p2)
+        new_population.append(child)
+    return new_population
+
+def maintain_diversity(population, target_size):
+    """
+    If duplicates dominate, replace some with random new seeds.
+    """
+    unique_inds = list(set(population))
+    # e.g., if fewer than 80% are unique, inject random
+    if len(unique_inds) < target_size * 0.8:
+        while len(unique_inds) < target_size:
+            unique_inds.append(random_page_id())
+    return unique_inds
+
+def main():
+    # INITIALIZE
+    population = [random_page_id() for _ in range(POPULATION_SIZE)]
+
+    for generation in range(NUM_GENERATIONS):
+        print(f"\n=== Generation {generation} ===")
+        evaluated = evaluate_population(population)
+        # Sort for convenience
+        evaluated_sorted = sorted(evaluated, key=lambda x: x[1], reverse=True)
+        best_page, best_score = evaluated_sorted[0]
+        print(f"Best so far: {best_page} => {best_score:.4f}")
+
+        # SELECTION
+        parents = select_parents(evaluated, KEEP_RATIO)
+
+        # BREED
+        new_population = breed_population(parents, POPULATION_SIZE)
+
+        # MUTATE
+        mutated_population = [mutate(pid, MUTATION_RATE) for pid in new_population]
+
+        # MAINTAIN DIVERSITY
+        population = maintain_diversity(mutated_population, POPULATION_SIZE)
+
+    # Final evaluation:
+    final_evaluated = evaluate_population(population)
+    final_sorted = sorted(final_evaluated, key=lambda x: x[1], reverse=True)
+    
+    print("\n=== FINAL TOP PAGES ===")
+    for i in range(min(5, len(final_sorted))):
+        page_id, score = final_sorted[i]
+        # Retrieve text snippet for display
+        snippet = get_page_text(page_id)[:300].replace('\n', ' ')
+        print(f"\nRank {i+1}")
+        print(f"Page ID: {page_id}")
+        print(f"Score: {score:.4f}")
+        print(f"Snippet: {snippet}...")
+        print(f"URL: https://libraryofbabel.info/book.cgi?{page_id}")
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+### That’s It!
+
+- **Run** the Replit to start the evolutionary search.  
+- Watch the console to see which pages are deemed most “coherent.”  
+- Keep in mind that due to the **random** nature of the Library of Babel, most pages will still be gibberish, but the evolutionary approach may occasionally stumble into short stretches of actual words or phrases.
+
+Enjoy exploring this fun (if highly experimental) concept!
