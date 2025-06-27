@@ -64,10 +64,10 @@ def health():
 def test_page():
     """Test endpoint to validate page fetching with a known Library of Babel page"""
     from flask import request
-    
+
     # Use a known page ID that should work
     test_page_id = request.args.get('page_id', 'test123')
-    
+
     html = f"""
     <html>
     <head><title>Test Page Fetching</title>
@@ -77,7 +77,7 @@ def test_page():
     <h1>Test Page Fetching</h1>
     <p>Testing page fetch for ID: {test_page_id}</p>
     """
-    
+
     if test_page_id == 'test123':
         # Return test content
         test_text = "This is a test page with meaningful content to validate the scoring system."
@@ -105,7 +105,7 @@ def test_page():
             <h3>Failed to Retrieve Page</h3>
             <p>Could not get content for page ID: {test_page_id}</p>
             """
-    
+
     html += """
     <p><a href="/test-page?page_id=test123">Test with sample content</a></p>
     <p><a href="/test-page?page_id=1">Test with page ID "1"</a></p>
@@ -113,7 +113,7 @@ def test_page():
     </body>
     </html>
     """
-    
+
     return html
 
 @app.route("/test-scoring")
@@ -691,7 +691,7 @@ def api_status():
             try:
                 if not isinstance(item, dict):
                     continue
-                    
+
                 score = item.get("score", 0.0)
                 if not isinstance(score, (int, float)) or math.isnan(score) or math.isinf(score):
                     score = 0.0
@@ -714,7 +714,7 @@ def api_status():
                 continue
 
         response["evolution_history"] = evolution_history_plain
-        
+
         # Test JSON serialization before returning
         try:
             json.dumps(response)
@@ -730,7 +730,7 @@ def api_status():
                 "best_page_id": None,
                 "evolution_history": []
             })
-        
+
         return jsonify(response)
 
     except Exception as e:
@@ -801,9 +801,9 @@ def diagnostics():
         else:
             stats["trend_text"] = "Stable →"
             stats["trend_class"] = "status-good"
-    else:
-        stats["trend_text"] = "Not enough data"
-        stats["trend_class"] = "status-warning"
+        else:
+            stats["trend_text"] = "Not enough data"
+            stats["trend_class"] = "status-warning"
 
     return render_template_string(DIAGNOSTICS_TEMPLATE,
         # System status
@@ -813,7 +813,8 @@ def diagnostics():
         ga_status=ga_status,
         ga_status_class=ga_status_class,
         ga_status_text=ga_status_text,
-        current_run=status_data.get("current_run", 0),
+        current_run=```text
+status_data.get("current_run", 0),
         current_generation=status_data.get("current_generation", 0),
         pages_evaluated=status_data.get("pages_evaluated", 0),
         best_score=status_data.get("best_score_this_run", 0.0),
@@ -847,7 +848,7 @@ def get_page_text(page_id: str) -> str:
         if response.status_code == 200:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
-            
+
             # Try multiple selectors for the page content
             page_div = soup.find("div", {"id": "page"})
             if not page_div:
@@ -1153,8 +1154,8 @@ class GAWorker(threading.Thread):
                     for pos in random.sample(range(32), random.randint(5, 15)):
                         chars[pos] = random.choice('0123456789abcdef')
                     population.append(''.join(chars))
-                    
-                print(f"[GA DEBUG] Generated diverse population: {[p[:8] + '...' for p in population[:3]]}"))
+
+                print(f"[GA DEBUG] Generated diverse population: {[p[:8] + '...' for p in population[:3]]}")
 
             run_best_score = 0.0
             run_best_page = None
