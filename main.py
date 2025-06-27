@@ -64,7 +64,7 @@ def health():
 def test_scoring():
     """Test the scoring system with known content"""
     from flask import request
-    
+
     # Test with meaningful text samples
     test_texts = [
         "This is a meaningful sentence with proper grammar and structure.",
@@ -74,12 +74,12 @@ def test_scoring():
         "aaaa bbbb cccc dddd eeee ffff",
         ""
     ]
-    
+
     results = []
     for i, text in enumerate(test_texts):
         score, embedding = get_semantic_score_and_embedding(text)
         norm = torch.norm(embedding).item() if embedding is not None else 0.0
-        
+
         results.append({
             "test_id": i + 1,
             "text": text,
@@ -88,7 +88,7 @@ def test_scoring():
             "text_length": len(text),
             "word_count": len(text.split()) if text else 0
         })
-    
+
     # Also test a real Library of Babel page if page_id is provided
     page_id = request.args.get('page_id')
     if page_id:
@@ -111,7 +111,7 @@ def test_scoring():
                 "page_id": page_id,
                 "error": "Could not retrieve page text"
             })
-    
+
     return f"""
     <html>
     <head><title>Scoring System Test</title>
@@ -127,7 +127,10 @@ def test_scoring():
     <p>Testing the semantic scoring function with known content:</p>
     <table>
     <tr><th>Test ID</th><th>Text Sample</th><th>Score</th><th>Embedding Norm</th><th>Word Count</th></tr>
-    {''.join([f"<tr><td>{r['test_id']}</td><td>{r['text'][:60]}...</td><td class=\"{'high-score' if r.get('score', 0) > 0.1 else ''}\">{r.get('score', 'ERROR')}</td><td>{r.get('embedding_norm', 'ERROR')}</td><td>{r.get('word_count', 'ERROR')}</td></tr>" for r in results])}
+    """ + ''.join([
+        f"<tr><td>{r['test_id']}</td><td>{r['text'][:60]}...</td><td class=\"{('high-score' if r.get('score', 0) > 0.1 else '')}\">{r.get('score', 'ERROR')}</td><td>{r.get('embedding_norm', 'ERROR')}</td><td>{r.get('word_count', 'ERROR')}</td></tr>"
+        for r in results
+    ]) + """
     </table>
     <p><a href="/test-scoring?page_id=test123">Test with sample page ID</a> | <a href="/">Back to Home</a></p>
     <h3>Expected Results:</h3>
@@ -455,7 +458,7 @@ DIAGNOSTICS_TEMPLATE = """
 <body>
   <h1>🔬 System Diagnostics</h1>
   <button class="refresh-btn" onclick="location.reload()">Refresh Data</button>
-  
+
   <div class="diagnostic-section">
     <h3>📊 Current System Status</h3>
     <table>
@@ -552,7 +555,7 @@ DIAGNOSTICS_TEMPLATE = """
           document.getElementById('api-response').textContent = 'Error: ' + err.message;
         });
     }
-    
+
     // Test API on page load
     testApiResponse();
   </script>
@@ -609,13 +612,13 @@ generation_details = load_generation_details()
 def api_status():
     from flask import jsonify
     import math
-    
+
     try:
         # Ensure all data is JSON serializable and handle NaN/Inf values
         best_score = status_data.get("best_score_this_run", 0.0)
         if math.isnan(best_score) or math.isinf(best_score):
             best_score = 0.0
-            
+
         response = {
             "status": str(status_data.get("status", "Unknown")),
             "current_run": int(status_data.get("current_run", 0)),
@@ -624,7 +627,7 @@ def api_status():
             "best_score_this_run": float(best_score),
             "best_page_id": status_data.get("best_page_id", None)
         }
-        
+
         # Convert evolution_history to plain Python list/dicts
         evolution_history_plain = []
         for item in evolution_history:
@@ -632,7 +635,7 @@ def api_status():
                 score = float(item.get("score", 0.0))
                 if math.isnan(score) or math.isinf(score):
                     score = 0.0
-                    
+
                 evolution_history_plain.append({
                     "generation": int(item.get("generation", 0)),
                     "score": score,
@@ -641,10 +644,10 @@ def api_status():
             except (TypeError, AttributeError, ValueError):
                 # Skip malformed entries
                 continue
-        
+
         response["evolution_history"] = evolution_history_plain
         return jsonify(response)
-        
+
     except Exception as e:
         # Return a safe fallback response if anything goes wrong
         return jsonify({
@@ -671,21 +674,21 @@ def leaderboard():
 @app.route("/diagnostics")
 def diagnostics():
     import statistics
-    
+
     # System status
     model_loaded = model is not None and tokenizer is not None
     model_status = "✓ Loaded" if model_loaded else "✗ Not Loaded"
     model_status_class = "status-good" if model_loaded else "status-error"
     model_status_text = "OK" if model_loaded else "ERROR"
-    
+
     # GA Worker status (simplified check)
     ga_status = "✓ Running" if status_data.get("current_run", 0) > 0 else "? Unknown"
     ga_status_class = "status-good" if status_data.get("current_run", 0) > 0 else "status-warning"
     ga_status_text = "OK" if status_data.get("current_run", 0) > 0 else "UNKNOWN"
-    
+
     # Recent generation details
     recent_gens = load_generation_details()[-20:]  # Last 20 generations
-    
+
     # Evolution history statistics
     evo_hist = load_evolution_history()
     stats = {
@@ -695,14 +698,14 @@ def diagnostics():
         "min_score": min([h["score"] for h in evo_hist]) if evo_hist else 0,
         "std_score": statistics.stdev([h["score"] for h in evo_hist]) if len(evo_hist) > 1 else 0
     }
-    
+
     # Trend analysis
     if len(evo_hist) >= 10:
         recent_scores = [h["score"] for h in evo_hist[-10:]]
         older_scores = [h["score"] for h in evo_hist[-20:-10]] if len(evo_hist) >= 20 else recent_scores
         recent_avg = statistics.mean(recent_scores)
         older_avg = statistics.mean(older_scores)
-        
+
         if recent_avg > older_avg * 1.1:
             stats["trend_text"] = "Improving ↗"
             stats["trend_class"] = "status-good"
@@ -715,7 +718,7 @@ def diagnostics():
     else:
         stats["trend_text"] = "Not enough data"
         stats["trend_class"] = "status-warning"
-    
+
     return render_template_string(DIAGNOSTICS_TEMPLATE,
         # System status
         model_status=model_status,
@@ -728,7 +731,7 @@ def diagnostics():
         current_generation=status_data.get("current_generation", 0),
         pages_evaluated=status_data.get("pages_evaluated", 0),
         best_score=status_data.get("best_score_this_run", 0.0),
-        
+
         # Configuration
         population_size=POPULATION_SIZE,
         generations_per_run=NUM_GENERATIONS_PER_RUN,
@@ -738,7 +741,7 @@ def diagnostics():
         request_timeout=REQUEST_TIMEOUT,
         max_text_length=MAX_TEXT_LENGTH,
         max_embed_tokens=MAX_EMBED_TOKENS,
-        
+
         # Data
         recent_generations=recent_gens,
         evolution_history=evo_hist,
@@ -754,12 +757,12 @@ def get_page_text(page_id: str) -> str:
     try:
         response = requests.get(url, timeout=REQUEST_TIMEOUT)
         print(f"[PAGE FETCH] Response status: {response.status_code}")
-        
+
         if response.status_code == 200:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
             page_div = soup.find("div", {"id": "page"})
-            
+
             if page_div:
                 text = page_div.get_text()
                 print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}...")
@@ -793,49 +796,49 @@ def get_semantic_score_and_embedding(text: str):
         text = text.strip()
         if not text:
             return 0.0, None
-        
+
         # Basic text quality checks
         words = text.split()
         if len(words) < 3:
             return 0.0, None
-        
+
         # Calculate basic coherence metrics
         alpha_ratio = sum(1 for w in words if w.isalpha()) / len(words)
         avg_word_len = sum(len(w.strip(",.!?;:\"'()[]{}")) for w in words) / len(words)
         unique_ratio = len(set(words)) / len(words)
-        
+
         # If text is too incoherent, return low score
         if alpha_ratio < 0.3 or avg_word_len < 2:
             return 0.1, None
-        
+
         text = text[:MAX_TEXT_LENGTH]  # limit length
         inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=MAX_EMBED_TOKENS)
         with torch.no_grad():
             outputs = model(**inputs)
         token_embeddings = outputs.last_hidden_state
         sentence_embedding = token_embeddings.mean(dim=1).squeeze()
-        
+
         # Get embedding norm (base semantic signal)
         norm_val = torch.norm(sentence_embedding).item()
-        
+
         # Calculate variance across token embeddings (coherence signal)
         token_variance = torch.var(token_embeddings.squeeze(), dim=0).mean().item()
-        
+
         # Combine signals with log scaling for better differentiation
         import math
-        
+
         # Normalize and combine metrics
         norm_component = math.log(norm_val + 0.1) + 5  # Shift to positive range
         variance_component = math.log(token_variance + 0.001) + 10  # Coherence signal
         text_quality = alpha_ratio * unique_ratio * min(avg_word_len / 5, 1.0)
-        
+
         # Final score with exponential scaling to amplify differences
         final_score = (norm_component + variance_component) * text_quality * 100
-        
+
         # Ensure score is finite
         if math.isnan(final_score) or math.isinf(final_score):
             final_score = 0.0
-        
+
         # Debug logging for scoring system - always log for now to debug the zero scores
         print(f"[SCORE DEBUG] ===================")
         print(f"[SCORE DEBUG] Input text: '{text[:100]}...'")
@@ -848,15 +851,15 @@ def get_semantic_score_and_embedding(text: str):
         print(f"[SCORE DEBUG] Text quality: {text_quality:.6f}")
         print(f"[SCORE DEBUG] Final score: {final_score:.6f}")
         print(f"[SCORE DEBUG] ===================")
-        
+
         # If score is exactly 0, that's suspicious - let's investigate
         if final_score == 0.0:
             print(f"[SCORE WARNING] Score is exactly 0.0 - this might indicate a problem!")
             print(f"[SCORE WARNING] Check if text quality is 0: {text_quality}")
             print(f"[SCORE WARNING] Check if norm/variance components are problematic")
-        
+
         return float(final_score), sentence_embedding
-        
+
     except Exception as e:
         print(f"[SCORE ERROR] Error in scoring: {e}")
         return 0.0, None
@@ -929,7 +932,7 @@ def evaluate_population(pop):
             # This is test text
             full_text = item
             page_id = f"TEST_{hash(item) % 10000:04d}"
-        
+
         score, _ = get_semantic_score_and_embedding(full_text)
         snippet = full_text[:300].replace("\n", " ")
         metrics = interpret_text(snippet, score)
@@ -1003,10 +1006,10 @@ class GAWorker(threading.Thread):
     def run(self):
         """Continually run small GA searches, store top hits in DB."""
         global status_data, evolution_history, generation_details
-        
+
         # Resume from last run count
         self.run_count = status_data.get("current_run", 0)
-        
+
         while self.running:
             # Clear memory before each run
             import gc
@@ -1038,20 +1041,20 @@ class GAWorker(threading.Thread):
             else:
                 # 1. Initialize population with random page IDs
                 population = [random_page_id() for _ in range(POPULATION_SIZE)]
-            
+
             run_best_score = 0.0
             run_best_page = None
-            
+
             # 2. For a few generations, refine
             for gen in range(NUM_GENERATIONS_PER_RUN):
                 print(f"[GA DEBUG] Starting generation {gen + 1}/{NUM_GENERATIONS_PER_RUN} of run {self.run_count}")
                 status_data["current_generation"] = gen + 1
                 status_data["pages_evaluated"] = status_data.get("pages_evaluated", 0) + len(population)
-                
+
                 print(f"[GA DEBUG] Evaluating population of {len(population)} pages...")
                 evaluated = evaluate_population(population)
                 print(f"[GA DEBUG] Population evaluated. Best score: {max(evaluated, key=lambda x: x['score'])['score']:.4f}")
-                
+
                 # Track best in this generation
                 gen_best = max(evaluated, key=lambda x: x["score"])
                 if gen_best["score"] > run_best_score:
@@ -1059,7 +1062,7 @@ class GAWorker(threading.Thread):
                     run_best_page = gen_best["page_id"]
                     status_data["best_score_this_run"] = run_best_score
                     status_data["best_page_id"] = run_best_page
-                
+
                 # Add to evolution history with global generation counter
                 global_generation = (self.run_count - 1) * NUM_GENERATIONS_PER_RUN + gen + 1
                 evolution_history.append({
@@ -1067,7 +1070,7 @@ class GAWorker(threading.Thread):
                     "score": gen_best["score"],
                     "run": self.run_count
                 })
-                
+
                 # Add detailed generation information for diagnostics
                 generation_details.append({
                     "run": self.run_count,
@@ -1080,20 +1083,20 @@ class GAWorker(threading.Thread):
                     "population_details": "\n".join([f"ID: {e['page_id'][:12]}... Score: {e['score']:.4f}" for e in sorted(evaluated, key=lambda x: x["score"], reverse=True)[:5]]) + f"\n... and {len(evaluated)-5} more" if len(evaluated) > 5 else "\n".join([f"ID: {e['page_id'][:12]}... Score: {e['score']:.4f}" for e in sorted(evaluated, key=lambda x: x["score"], reverse=True)]),
                     "timestamp": datetime.utcnow().isoformat()
                 })
-                
+
                 # Keep only last 200 points for better visualization
                 if len(evolution_history) > 200:
                     evolution_history = evolution_history[-200:]
-                
+
                 # Keep only last 50 detailed generations
                 if len(generation_details) > 50:
                     generation_details = generation_details[-50:]
-                
+
                 # Save status and history after each generation
                 save_status_data(status_data)
                 save_evolution_history(evolution_history)
                 save_generation_details(generation_details)
-                
+
                 parents = select_parents(evaluated, KEEP_RATIO)
                 new_pop = breed_population(parents, POPULATION_SIZE)
                 mutated = [mutate(pid, MUTATION_RATE) for pid in new_pop]
