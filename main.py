@@ -837,7 +837,13 @@ def diagnostics():
 ###############################
 # GA & SCRAPING LOGIC
 ###############################
+# Track content hashes to detect duplicate content
+seen_content_hashes = {}
+duplicate_content_count = 0
+
 def get_page_text(page_id: str) -> str:
+    global seen_content_hashes, duplicate_content_count
+    
     url = f"https://libraryofbabel.info/book.cgi?{page_id}"
     print(f"[PAGE FETCH] Attempting to fetch: {url} (ID: {page_id[:12]}...)")
     try:
@@ -866,7 +872,21 @@ def get_page_text(page_id: str) -> str:
                 # Calculate a simple hash to detect if we're getting the same content
                 import hashlib
                 content_hash = hashlib.md5(text.encode()).hexdigest()[:8]
-                print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}... (hash: {content_hash})")
+                
+                # Track duplicate content
+                if content_hash in seen_content_hashes:
+                    duplicate_content_count += 1
+                    previous_page = seen_content_hashes[content_hash]
+                    print(f"[PAGE WARNING] DUPLICATE CONTENT! Page {page_id[:8]}... has same content as {previous_page[:8]}... (hash: {content_hash})")
+                    print(f"[PAGE WARNING] Total duplicates seen: {duplicate_content_count}")
+                    
+                    # If we're getting too many duplicates, this suggests our page IDs are invalid
+                    if duplicate_content_count > 20:
+                        print(f"[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!")
+                else:
+                    seen_content_hashes[content_hash] = page_id
+                    print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}... (hash: {content_hash}) [UNIQUE]")
+                
                 print(f"[PAGE SAMPLE] First 100 chars: '{text[:100]}'")
                 return text
             else:
@@ -1009,7 +1029,22 @@ def interpret_text(snippet: str, embedding_norm: float):
     }
 
 def random_page_id(length=PAGE_ID_LENGTH):
-    return ''.join(random.choice('0123456789abcdef') for _ in range(length))
+    """
+    Generate a more realistic Library of Babel page ID.
+    The Library of Babel uses a specific format - let's try to match it better.
+    """
+    # Use a mix of approaches to generate more realistic page IDs
+    if random.random() < 0.3:
+        # Sometimes use very simple patterns that might exist
+        base = random.choice(['1', '0', 'a', 'f'])
+        return base * length
+    elif random.random() < 0.5:
+        # Sometimes use incremental patterns
+        start = random.randint(0, 15)
+        return ''.join(hex(i % 16)[2:] for i in range(start, start + length))
+    else:
+        # Most of the time use random but with better entropy
+        return ''.join(random.choice('0123456789abcdef') for _ in range(length))
 
 def mutate(pid, mutation_rate):
     chars = list(pid)
@@ -1142,19 +1177,41 @@ class GAWorker(threading.Thread):
                 ]
                 population = test_texts
             else:
-                # Generate more diverse, realistic Library of Babel page IDs
-                # Use random hex strings with better entropy distribution
+                # Mix of strategies to find valid Library of Babel pages
                 population = []
-                for _ in range(POPULATION_SIZE):
-                    # Generate truly random page IDs with mixed characters
-                    page_id = ''.join(random.choices('0123456789abcdef', k=32))
-                    # Ensure some variation by setting random positions to different values
-                    chars = list(page_id)
-                    for pos in random.sample(range(32), random.randint(5, 15)):
-                        chars[pos] = random.choice('0123456789abcdef')
-                    population.append(''.join(chars))
+                
+                # Add some known patterns that might work
+                known_patterns = [
+                    "1" * 32,  # All ones
+                    "0" * 32,  # All zeros
+                    "a" * 32,  # All 'a's
+                    "f" * 32,  # All 'f's
+                ]
+                
+                # Add a few known patterns
+                for pattern in known_patterns[:min(3, POPULATION_SIZE)]:
+                    population.append(pattern)
+                
+                # Fill the rest with different generation strategies
+                while len(population) < POPULATION_SIZE:
+                    strategy = random.choice(['incremental', 'random', 'mixed'])
+                    
+                    if strategy == 'incremental':
+                        # Try incremental hex sequences
+                        start = random.randint(0, 1000)
+                        page_id = f"{start:032x}"  # Zero-pad to 32 chars
+                        population.append(page_id)
+                    elif strategy == 'mixed':
+                        # Mix of repeated and random characters
+                        base_char = random.choice('0123456789abcdef')
+                        page_id = base_char * 16 + ''.join(random.choices('0123456789abcdef', k=16))
+                        population.append(page_id)
+                    else:
+                        # Truly random
+                        page_id = random_page_id()
+                        population.append(page_id)
 
-                print(f"[GA DEBUG] Generated diverse population: {[p[:8] + '...' for p in population[:3]]}")
+                print(f"[GA DEBUG] Generated diverse population with strategies: {[p[:8] + '...' for p in population[:3]]}")
 
             run_best_score = 0.0
             run_best_page = None
