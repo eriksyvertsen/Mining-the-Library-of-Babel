@@ -801,7 +801,7 @@ def diagnostics():
         else:
             stats["trend_text"] = "Stable →"
             stats["trend_class"] = "status-good"
-        else:
+    else:
         stats["trend_text"] = "Not enough data"
         stats["trend_class"] = "status-warning"
 
