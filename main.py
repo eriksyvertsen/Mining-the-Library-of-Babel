@@ -184,7 +184,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
           document.getElementById('current-run').textContent = data.current_run;
           document.getElementById('current-generation').textContent = data.current_generation;
           document.getElementById('pages-evaluated').textContent = data.pages_evaluated;
-          document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(6);
+          document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(2);
 
           // Update progress bar
           const progressPercent = (data.current_generation / 2) * 100;
@@ -224,7 +224,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
         pointEl.style.left = left + 'px';
         pointEl.style.height = height + 'px';
         pointEl.style.width = pointWidth + 'px';
-        pointEl.title = `Run ${point.run || 'N/A'} Gen ${point.generation}: Score ${point.score.toFixed(6)}`;
+        pointEl.title = `Run ${point.run || 'N/A'} Gen ${point.generation}: Score ${point.score.toFixed(2)}`;
 
         graph.appendChild(pointEl);
       });
@@ -290,7 +290,7 @@ LEADERBOARD_TEMPLATE = """
     <tr>
       <td>{{ loop.index }}</td>
       <td><a href="https://libraryofbabel.info/book.cgi?{{ item.page_id }}" target="_blank">{{ item.page_id[:8] }}...</a></td>
-      <td>{{ item.score | round(6) }}</td>
+      <td>{{ item.score | round(2) }}</td>
       <td>{{ item.snippet }}</td>
       <td class="metrics">
         <pre>{{ item.metrics }}</pre>
@@ -385,7 +385,7 @@ def get_page_text(page_id: str) -> str:
 def get_semantic_score_and_embedding(text: str):
     """
     Returns a (score, embedding) tuple.
-    'score' = embedding norm as a rough measure of coherence.
+    Enhanced scoring that combines multiple coherence signals.
     """
     global model, tokenizer
     if model is None or tokenizer is None:
@@ -394,14 +394,46 @@ def get_semantic_score_and_embedding(text: str):
     text = text.strip()
     if not text:
         return 0.0, None
+    
+    # Basic text quality checks
+    words = text.split()
+    if len(words) < 3:
+        return 0.0, None
+    
+    # Calculate basic coherence metrics
+    alpha_ratio = sum(1 for w in words if w.isalpha()) / len(words)
+    avg_word_len = sum(len(w.strip(",.!?;:\"'()[]{}")) for w in words) / len(words)
+    unique_ratio = len(set(words)) / len(words)
+    
+    # If text is too incoherent, return low score
+    if alpha_ratio < 0.3 or avg_word_len < 2:
+        return 0.1, None
+    
     text = text[:MAX_TEXT_LENGTH]  # limit length
     inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=MAX_EMBED_TOKENS)
     with torch.no_grad():
         outputs = model(**inputs)
     token_embeddings = outputs.last_hidden_state
     sentence_embedding = token_embeddings.mean(dim=1).squeeze()
+    
+    # Get embedding norm (base semantic signal)
     norm_val = torch.norm(sentence_embedding).item()
-    return float(norm_val), sentence_embedding
+    
+    # Calculate variance across token embeddings (coherence signal)
+    token_variance = torch.var(token_embeddings.squeeze(), dim=0).mean().item()
+    
+    # Combine signals with log scaling for better differentiation
+    import math
+    
+    # Normalize and combine metrics
+    norm_component = math.log(norm_val + 0.1) + 5  # Shift to positive range
+    variance_component = math.log(token_variance + 0.001) + 10  # Coherence signal
+    text_quality = alpha_ratio * unique_ratio * min(avg_word_len / 5, 1.0)
+    
+    # Final score with exponential scaling to amplify differences
+    final_score = (norm_component + variance_component) * text_quality * 100
+    
+    return float(final_score), sentence_embedding
 
 def interpret_text(snippet: str, embedding_norm: float):
     """
