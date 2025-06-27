@@ -184,7 +184,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
           document.getElementById('current-run').textContent = data.current_run;
           document.getElementById('current-generation').textContent = data.current_generation;
           document.getElementById('pages-evaluated').textContent = data.pages_evaluated;
-          document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(3);
+          document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(6);
 
           // Update progress bar
           const progressPercent = (data.current_generation / 2) * 100;
@@ -224,7 +224,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
         pointEl.style.left = left + 'px';
         pointEl.style.height = height + 'px';
         pointEl.style.width = pointWidth + 'px';
-        pointEl.title = `Run ${point.run || 'N/A'} Gen ${point.generation}: Score ${point.score.toFixed(4)}`;
+        pointEl.title = `Run ${point.run || 'N/A'} Gen ${point.generation}: Score ${point.score.toFixed(6)}`;
 
         graph.appendChild(pointEl);
       });
@@ -290,7 +290,7 @@ LEADERBOARD_TEMPLATE = """
     <tr>
       <td>{{ loop.index }}</td>
       <td><a href="https://libraryofbabel.info/book.cgi?{{ item.page_id }}" target="_blank">{{ item.page_id[:8] }}...</a></td>
-      <td>{{ item.score | round(3) }}</td>
+      <td>{{ item.score | round(6) }}</td>
       <td>{{ item.snippet }}</td>
       <td class="metrics">
         <pre>{{ item.metrics }}</pre>
