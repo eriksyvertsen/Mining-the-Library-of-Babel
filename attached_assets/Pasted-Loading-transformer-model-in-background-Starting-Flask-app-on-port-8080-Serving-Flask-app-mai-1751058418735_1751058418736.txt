@@ -1,0 +1,82 @@
+Loading transformer model in background...
+Starting Flask app on port 8080
+ * Serving Flask app 'main'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.31.128.43:8080
+Press CTRL+C to quit
+Model loaded.
+172.31.128.43 - - [27/Jun/2025 21:05:34] "GET / HTTP/1.1" 200 -
+Background GA worker started.
+172.31.128.43 - - [27/Jun/2025 21:05:34] "GET /api/status HTTP/1.1" 200 -
+[GA DEBUG] Starting generation 1/2 of run 551
+[GA DEBUG] Evaluating population of 10 pages...
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?00000000000000000000000000000000
+[PAGE FETCH] Response status: 200
+[PAGE SUCCESS] Retrieved 3239 characters for page 00000000...
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?00000000000000000000000000000001
+[PAGE FETCH] Response status: 200
+[PAGE SUCCESS] Retrieved 3239 characters for page 00000000...
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?00000000000000000000000000000002
+[PAGE FETCH] Response status: 200
+[PAGE SUCCESS] Retrieved 3239 characters for page 00000000...
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?00000000000000000000000000000003
+[PAGE FETCH] Response status: 200
+[PAGE SUCCESS] Retrieved 3239 characters for page 00000000...
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
