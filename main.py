@@ -304,7 +304,22 @@ LEADERBOARD_TEMPLATE = """
 
 @app.route("/")
 def home():
-    return HOME_HTML
+    return render_template_string(HOME_HTML, NUM_GENERATIONS_PER_RUN=NUM_GENERATIONS_PER_RUN)
+
+# Global status tracking
+status_data = {
+    "status": "Initializing...",
+    "current_run": 0,
+    "current_generation": 0,
+    "pages_evaluated": 0,
+    "best_score_this_run": 0.0,
+    "best_page_id": None,
+    "evolution_history": []
+}
+
+@app.route("/api/status")
+def api_status():
+    return status_data
 
 @app.route("/leaderboard")
 def leaderboard():
@@ -482,20 +497,52 @@ class GAWorker(threading.Thread):
     def __init__(self):
         super().__init__()
         self.running = True
+        self.run_count = 0
 
     def run(self):
         """Continually run small GA searches, store top hits in DB."""
+        global status_data
+        
         while self.running:
             # Clear memory before each run
             import gc
             gc.collect()
             torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
+            self.run_count += 1
+            status_data["current_run"] = self.run_count
+            status_data["status"] = f"Running generation-based evolution (Run {self.run_count})"
+
             # 1. Initialize population
             population = [random_page_id() for _ in range(POPULATION_SIZE)]
+            run_best_score = 0.0
+            run_best_page = None
+            
             # 2. For a few generations, refine
-            for _ in range(NUM_GENERATIONS_PER_RUN):
+            for gen in range(NUM_GENERATIONS_PER_RUN):
+                status_data["current_generation"] = gen + 1
+                status_data["pages_evaluated"] = status_data.get("pages_evaluated", 0) + len(population)
+                
                 evaluated = evaluate_population(population)
+                
+                # Track best in this generation
+                gen_best = max(evaluated, key=lambda x: x["score"])
+                if gen_best["score"] > run_best_score:
+                    run_best_score = gen_best["score"]
+                    run_best_page = gen_best["page_id"]
+                    status_data["best_score_this_run"] = run_best_score
+                    status_data["best_page_id"] = run_best_page
+                
+                # Add to evolution history
+                status_data["evolution_history"].append({
+                    "generation": len(status_data["evolution_history"]) + 1,
+                    "score": gen_best["score"]
+                })
+                
+                # Keep only last 100 points
+                if len(status_data["evolution_history"]) > 100:
+                    status_data["evolution_history"] = status_data["evolution_history"][-100:]
+                
                 parents = select_parents(evaluated, KEEP_RATIO)
                 new_pop = breed_population(parents, POPULATION_SIZE)
                 mutated = [mutate(pid, MUTATION_RATE) for pid in new_pop]
@@ -506,6 +553,7 @@ class GAWorker(threading.Thread):
             # Update leaderboard if any are good
             try_update_leaderboard(final_evaluated)
 
+            status_data["status"] = f"Completed Run {self.run_count} - Sleeping before next run"
             # Short sleep to avoid spamming requests
             time.sleep(SLEEP_BETWEEN_RUNS)
 
@@ -521,8 +569,11 @@ model_thread.start()
 
 # Start GA worker only after model is loaded
 def start_ga_worker():
+    global status_data
     while model is None or tokenizer is None:
+        status_data["status"] = "Loading AI model..."
         time.sleep(1)
+    status_data["status"] = "Model loaded - Starting evolution"
     worker = GAWorker()
     worker.start()
     print("Background GA worker started.")
