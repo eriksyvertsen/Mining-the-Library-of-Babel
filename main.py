@@ -60,6 +60,86 @@ app = Flask(__name__)
 def health():
     return "OK", 200
 
+@app.route("/test-scoring")
+def test_scoring():
+    """Test the scoring system with known content"""
+    from flask import request
+    
+    # Test with meaningful text samples
+    test_texts = [
+        "This is a meaningful sentence with proper grammar and structure.",
+        "The quick brown fox jumps over the lazy dog in the garden.",
+        "Once upon a time, in a land far away, there lived a wise old wizard.",
+        "asdfghjkl qwerty random gibberish nonsense",
+        "aaaa bbbb cccc dddd eeee ffff",
+        ""
+    ]
+    
+    results = []
+    for i, text in enumerate(test_texts):
+        score, embedding = get_semantic_score_and_embedding(text)
+        norm = torch.norm(embedding).item() if embedding is not None else 0.0
+        
+        results.append({
+            "test_id": i + 1,
+            "text": text,
+            "score": round(score, 6),
+            "embedding_norm": round(norm, 6) if embedding is not None else "None",
+            "text_length": len(text),
+            "word_count": len(text.split()) if text else 0
+        })
+    
+    # Also test a real Library of Babel page if page_id is provided
+    page_id = request.args.get('page_id')
+    if page_id:
+        page_text = get_page_text(page_id)
+        if page_text:
+            score, embedding = get_semantic_score_and_embedding(page_text)
+            norm = torch.norm(embedding).item() if embedding is not None else 0.0
+            results.append({
+                "test_id": "real_page",
+                "page_id": page_id,
+                "text": page_text[:200] + "..." if len(page_text) > 200 else page_text,
+                "full_text_length": len(page_text),
+                "score": round(score, 6),
+                "embedding_norm": round(norm, 6) if embedding is not None else "None",
+                "word_count": len(page_text.split()) if page_text else 0
+            })
+        else:
+            results.append({
+                "test_id": "real_page",
+                "page_id": page_id,
+                "error": "Could not retrieve page text"
+            })
+    
+    return f"""
+    <html>
+    <head><title>Scoring System Test</title>
+    <style>body{{font-family:monospace;background:#000;color:#0f0;padding:20px;}}
+    table{{border-collapse:collapse;width:100%;}}
+    th,td{{border:1px solid #0f0;padding:8px;text-align:left;}}
+    .high-score{{color:#ff0;}}
+    .error{{color:#f00;}}
+    </style>
+    </head>
+    <body>
+    <h1>Scoring System Test Results</h1>
+    <p>Testing the semantic scoring function with known content:</p>
+    <table>
+    <tr><th>Test ID</th><th>Text Sample</th><th>Score</th><th>Embedding Norm</th><th>Word Count</th></tr>
+    {''.join([f"<tr><td>{r['test_id']}</td><td>{r['text'][:60]}...</td><td class=\"{'high-score' if r.get('score', 0) > 0.1 else ''}\">{r.get('score', 'ERROR')}</td><td>{r.get('embedding_norm', 'ERROR')}</td><td>{r.get('word_count', 'ERROR')}</td></tr>" for r in results])}
+    </table>
+    <p><a href="/test-scoring?page_id=test123">Test with sample page ID</a> | <a href="/">Back to Home</a></p>
+    <h3>Expected Results:</h3>
+    <ul>
+    <li>Meaningful sentences should have scores > 0.1</li>
+    <li>Random gibberish should have lower scores</li>
+    <li>Empty text should have score 0.0</li>
+    </ul>
+    </body>
+    </html>
+    """
+
 HOME_HTML = """
 <!DOCTYPE html>
 <html>
@@ -670,21 +750,34 @@ def diagnostics():
 ###############################
 def get_page_text(page_id: str) -> str:
     url = f"https://libraryofbabel.info/book.cgi?{page_id}"
+    print(f"[PAGE FETCH] Attempting to fetch: {url}")
     try:
         response = requests.get(url, timeout=REQUEST_TIMEOUT)
+        print(f"[PAGE FETCH] Response status: {response.status_code}")
+        
         if response.status_code == 200:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
             page_div = soup.find("div", {"id": "page"})
+            
             if page_div:
                 text = page_div.get_text()
-                if random.random() < 0.1:  # Debug 10% of page retrievals
-                    print(f"[PAGE DEBUG] Retrieved {len(text)} characters for page {page_id[:8]}...")
+                print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}...")
+                print(f"[PAGE SAMPLE] First 100 chars: '{text[:100]}'")
                 return text
+            else:
+                print(f"[PAGE ERROR] No 'page' div found for {page_id[:8]}...")
+                # Log what divs we did find
+                all_divs = soup.find_all("div")
+                div_ids = [d.get("id") for d in all_divs if d.get("id")]
+                print(f"[PAGE ERROR] Found divs with IDs: {div_ids}")
         else:
             print(f"[PAGE ERROR] HTTP {response.status_code} for page {page_id[:8]}...")
+            print(f"[PAGE ERROR] Response content preview: {response.text[:200]}")
     except Exception as e:
         print(f"[PAGE ERROR] Exception for page {page_id[:8]}...: {e}")
+        import traceback
+        print(f"[PAGE ERROR] Full traceback: {traceback.format_exc()}")
     return ""
 
 def get_semantic_score_and_embedding(text: str):
@@ -743,12 +836,24 @@ def get_semantic_score_and_embedding(text: str):
         if math.isnan(final_score) or math.isinf(final_score):
             final_score = 0.0
         
-        # Debug logging for scoring system
-        if random.random() < 0.5:  # Log 50% of calculations for better visibility
-            print(f"[SCORE DEBUG] Text: '{text[:50]}...'")
-            print(f"[SCORE DEBUG] norm_val: {norm_val:.4f}, norm_component: {norm_component:.4f}")
-            print(f"[SCORE DEBUG] token_variance: {token_variance:.6f}, variance_component: {variance_component:.4f}")
-            print(f"[SCORE DEBUG] text_quality: {text_quality:.4f}, final_score: {final_score:.4f}")
+        # Debug logging for scoring system - always log for now to debug the zero scores
+        print(f"[SCORE DEBUG] ===================")
+        print(f"[SCORE DEBUG] Input text: '{text[:100]}...'")
+        print(f"[SCORE DEBUG] Text length: {len(text)}, Words: {len(words)}")
+        print(f"[SCORE DEBUG] Alpha ratio: {alpha_ratio:.4f}, Avg word len: {avg_word_len:.4f}, Unique ratio: {unique_ratio:.4f}")
+        print(f"[SCORE DEBUG] Embedding norm: {norm_val:.6f}")
+        print(f"[SCORE DEBUG] Token variance: {token_variance:.8f}")
+        print(f"[SCORE DEBUG] Norm component: {norm_component:.6f}")
+        print(f"[SCORE DEBUG] Variance component: {variance_component:.6f}")
+        print(f"[SCORE DEBUG] Text quality: {text_quality:.6f}")
+        print(f"[SCORE DEBUG] Final score: {final_score:.6f}")
+        print(f"[SCORE DEBUG] ===================")
+        
+        # If score is exactly 0, that's suspicious - let's investigate
+        if final_score == 0.0:
+            print(f"[SCORE WARNING] Score is exactly 0.0 - this might indicate a problem!")
+            print(f"[SCORE WARNING] Check if text quality is 0: {text_quality}")
+            print(f"[SCORE WARNING] Check if norm/variance components are problematic")
         
         return float(final_score), sentence_embedding
         
@@ -814,13 +919,22 @@ def crossover(p1, p2):
 
 def evaluate_population(pop):
     results = []
-    for pid in pop:
-        full_text = get_page_text(pid)
+    for item in pop:
+        # Check if this is a test text (string) or a page ID
+        if len(item) == PAGE_ID_LENGTH and all(c in '0123456789abcdef' for c in item):
+            # This looks like a page ID
+            full_text = get_page_text(item)
+            page_id = item
+        else:
+            # This is test text
+            full_text = item
+            page_id = f"TEST_{hash(item) % 10000:04d}"
+        
         score, _ = get_semantic_score_and_embedding(full_text)
         snippet = full_text[:300].replace("\n", " ")
         metrics = interpret_text(snippet, score)
         results.append({
-            "page_id": pid,
+            "page_id": page_id,
             "score": score,
             "snippet": snippet,
             "metrics": metrics
@@ -904,8 +1018,27 @@ class GAWorker(threading.Thread):
             status_data["status"] = f"Running generation-based evolution (Run {self.run_count})"
             save_status_data(status_data)
 
-            # 1. Initialize population
-            population = [random_page_id() for _ in range(POPULATION_SIZE)]
+            # TEST MODE: For the first few runs, use known good content to test scoring
+            if self.run_count <= 3:
+                print(f"[GA TEST] Running in TEST MODE for run {self.run_count}")
+                # Use test content instead of random pages
+                test_texts = [
+                    "The quick brown fox jumps over the lazy dog.",
+                    "Once upon a time in a galaxy far away.",
+                    "To be or not to be, that is the question.",
+                    "In the beginning was the Word.",
+                    "It was the best of times, it was the worst of times.",
+                    "Call me Ishmael.",
+                    "In a hole in the ground there lived a hobbit.",
+                    "All happy families are alike.",
+                    "It is a truth universally acknowledged.",
+                    "Last night I dreamt I went to Manderley again."
+                ]
+                population = test_texts
+            else:
+                # 1. Initialize population with random page IDs
+                population = [random_page_id() for _ in range(POPULATION_SIZE)]
+            
             run_best_score = 0.0
             run_best_page = None
             
