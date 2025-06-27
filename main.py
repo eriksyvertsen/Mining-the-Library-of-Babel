@@ -844,7 +844,7 @@ class GAWorker(threading.Thread):
 
     def run(self):
         """Continually run small GA searches, store top hits in DB."""
-        global status_data, evolution_history
+        global status_data, evolution_history, generation_details
         
         # Resume from last run count
         self.run_count = status_data.get("current_run", 0)
