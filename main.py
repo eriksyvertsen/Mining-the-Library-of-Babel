@@ -528,32 +528,55 @@ generation_details = load_generation_details()
 @app.route("/api/status")
 def api_status():
     from flask import jsonify
+    import math
     
-    # Ensure all data is JSON serializable
-    response = {
-        "status": str(status_data.get("status", "Unknown")),
-        "current_run": int(status_data.get("current_run", 0)),
-        "current_generation": int(status_data.get("current_generation", 0)),
-        "pages_evaluated": int(status_data.get("pages_evaluated", 0)),
-        "best_score_this_run": float(status_data.get("best_score_this_run", 0.0)),
-        "best_page_id": status_data.get("best_page_id", None)
-    }
-    
-    # Convert evolution_history to plain Python list/dicts
-    evolution_history_plain = []
-    for item in evolution_history:
-        try:
-            evolution_history_plain.append({
-                "generation": int(item.get("generation", 0)),
-                "score": float(item.get("score", 0.0)),
-                "run": int(item.get("run", 0))
-            })
-        except (TypeError, AttributeError):
-            # Skip malformed entries
-            continue
-    
-    response["evolution_history"] = evolution_history_plain
-    return jsonify(response)
+    try:
+        # Ensure all data is JSON serializable and handle NaN/Inf values
+        best_score = status_data.get("best_score_this_run", 0.0)
+        if math.isnan(best_score) or math.isinf(best_score):
+            best_score = 0.0
+            
+        response = {
+            "status": str(status_data.get("status", "Unknown")),
+            "current_run": int(status_data.get("current_run", 0)),
+            "current_generation": int(status_data.get("current_generation", 0)),
+            "pages_evaluated": int(status_data.get("pages_evaluated", 0)),
+            "best_score_this_run": float(best_score),
+            "best_page_id": status_data.get("best_page_id", None)
+        }
+        
+        # Convert evolution_history to plain Python list/dicts
+        evolution_history_plain = []
+        for item in evolution_history:
+            try:
+                score = float(item.get("score", 0.0))
+                if math.isnan(score) or math.isinf(score):
+                    score = 0.0
+                    
+                evolution_history_plain.append({
+                    "generation": int(item.get("generation", 0)),
+                    "score": score,
+                    "run": int(item.get("run", 0))
+                })
+            except (TypeError, AttributeError, ValueError):
+                # Skip malformed entries
+                continue
+        
+        response["evolution_history"] = evolution_history_plain
+        return jsonify(response)
+        
+    except Exception as e:
+        # Return a safe fallback response if anything goes wrong
+        return jsonify({
+            "status": "Error in API",
+            "current_run": 0,
+            "current_generation": 0,
+            "pages_evaluated": 0,
+            "best_score_this_run": 0.0,
+            "best_page_id": None,
+            "evolution_history": [],
+            "error": str(e)
+        })
 
 @app.route("/leaderboard")
 def leaderboard():
@@ -668,49 +691,65 @@ def get_semantic_score_and_embedding(text: str):
     if model is None or tokenizer is None:
         return 0.0, None
 
-    text = text.strip()
-    if not text:
+    try:
+        text = text.strip()
+        if not text:
+            return 0.0, None
+        
+        # Basic text quality checks
+        words = text.split()
+        if len(words) < 3:
+            return 0.0, None
+        
+        # Calculate basic coherence metrics
+        alpha_ratio = sum(1 for w in words if w.isalpha()) / len(words)
+        avg_word_len = sum(len(w.strip(",.!?;:\"'()[]{}")) for w in words) / len(words)
+        unique_ratio = len(set(words)) / len(words)
+        
+        # If text is too incoherent, return low score
+        if alpha_ratio < 0.3 or avg_word_len < 2:
+            return 0.1, None
+        
+        text = text[:MAX_TEXT_LENGTH]  # limit length
+        inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=MAX_EMBED_TOKENS)
+        with torch.no_grad():
+            outputs = model(**inputs)
+        token_embeddings = outputs.last_hidden_state
+        sentence_embedding = token_embeddings.mean(dim=1).squeeze()
+        
+        # Get embedding norm (base semantic signal)
+        norm_val = torch.norm(sentence_embedding).item()
+        
+        # Calculate variance across token embeddings (coherence signal)
+        token_variance = torch.var(token_embeddings.squeeze(), dim=0).mean().item()
+        
+        # Combine signals with log scaling for better differentiation
+        import math
+        
+        # Normalize and combine metrics
+        norm_component = math.log(norm_val + 0.1) + 5  # Shift to positive range
+        variance_component = math.log(token_variance + 0.001) + 10  # Coherence signal
+        text_quality = alpha_ratio * unique_ratio * min(avg_word_len / 5, 1.0)
+        
+        # Final score with exponential scaling to amplify differences
+        final_score = (norm_component + variance_component) * text_quality * 100
+        
+        # Ensure score is finite
+        if math.isnan(final_score) or math.isinf(final_score):
+            final_score = 0.0
+        
+        # Debug logging for scoring system
+        if random.random() < 0.1:  # Log 10% of calculations
+            print(f"[SCORE DEBUG] Text: '{text[:50]}...'")
+            print(f"[SCORE DEBUG] norm_val: {norm_val:.4f}, norm_component: {norm_component:.4f}")
+            print(f"[SCORE DEBUG] token_variance: {token_variance:.6f}, variance_component: {variance_component:.4f}")
+            print(f"[SCORE DEBUG] text_quality: {text_quality:.4f}, final_score: {final_score:.4f}")
+        
+        return float(final_score), sentence_embedding
+        
+    except Exception as e:
+        print(f"[SCORE ERROR] Error in scoring: {e}")
         return 0.0, None
-    
-    # Basic text quality checks
-    words = text.split()
-    if len(words) < 3:
-        return 0.0, None
-    
-    # Calculate basic coherence metrics
-    alpha_ratio = sum(1 for w in words if w.isalpha()) / len(words)
-    avg_word_len = sum(len(w.strip(",.!?;:\"'()[]{}")) for w in words) / len(words)
-    unique_ratio = len(set(words)) / len(words)
-    
-    # If text is too incoherent, return low score
-    if alpha_ratio < 0.3 or avg_word_len < 2:
-        return 0.1, None
-    
-    text = text[:MAX_TEXT_LENGTH]  # limit length
-    inputs = tokenizer(text, return_tensors='pt', truncation=True, max_length=MAX_EMBED_TOKENS)
-    with torch.no_grad():
-        outputs = model(**inputs)
-    token_embeddings = outputs.last_hidden_state
-    sentence_embedding = token_embeddings.mean(dim=1).squeeze()
-    
-    # Get embedding norm (base semantic signal)
-    norm_val = torch.norm(sentence_embedding).item()
-    
-    # Calculate variance across token embeddings (coherence signal)
-    token_variance = torch.var(token_embeddings.squeeze(), dim=0).mean().item()
-    
-    # Combine signals with log scaling for better differentiation
-    import math
-    
-    # Normalize and combine metrics
-    norm_component = math.log(norm_val + 0.1) + 5  # Shift to positive range
-    variance_component = math.log(token_variance + 0.001) + 10  # Coherence signal
-    text_quality = alpha_ratio * unique_ratio * min(avg_word_len / 5, 1.0)
-    
-    # Final score with exponential scaling to amplify differences
-    final_score = (norm_component + variance_component) * text_quality * 100
-    
-    return float(final_score), sentence_embedding
 
 def interpret_text(snippet: str, embedding_norm: float):
     """
