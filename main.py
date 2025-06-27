@@ -342,7 +342,7 @@ evolution_history = load_evolution_history()
 @app.route("/api/status")
 def api_status():
     # Combine status data with evolution history for response
-    response = status_data.copy()
+    response = dict(status_data)  # Convert ObservedDict to regular dict
     response["evolution_history"] = evolution_history
     return response
 
