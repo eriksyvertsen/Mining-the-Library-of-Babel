@@ -677,9 +677,14 @@ def get_page_text(page_id: str) -> str:
             soup = BeautifulSoup(response.text, 'html.parser')
             page_div = soup.find("div", {"id": "page"})
             if page_div:
-                return page_div.get_text()
-    except:
-        pass
+                text = page_div.get_text()
+                if random.random() < 0.1:  # Debug 10% of page retrievals
+                    print(f"[PAGE DEBUG] Retrieved {len(text)} characters for page {page_id[:8]}...")
+                return text
+        else:
+            print(f"[PAGE ERROR] HTTP {response.status_code} for page {page_id[:8]}...")
+    except Exception as e:
+        print(f"[PAGE ERROR] Exception for page {page_id[:8]}...: {e}")
     return ""
 
 def get_semantic_score_and_embedding(text: str):
@@ -739,7 +744,7 @@ def get_semantic_score_and_embedding(text: str):
             final_score = 0.0
         
         # Debug logging for scoring system
-        if random.random() < 0.1:  # Log 10% of calculations
+        if random.random() < 0.5:  # Log 50% of calculations for better visibility
             print(f"[SCORE DEBUG] Text: '{text[:50]}...'")
             print(f"[SCORE DEBUG] norm_val: {norm_val:.4f}, norm_component: {norm_component:.4f}")
             print(f"[SCORE DEBUG] token_variance: {token_variance:.6f}, variance_component: {variance_component:.4f}")
@@ -906,10 +911,13 @@ class GAWorker(threading.Thread):
             
             # 2. For a few generations, refine
             for gen in range(NUM_GENERATIONS_PER_RUN):
+                print(f"[GA DEBUG] Starting generation {gen + 1}/{NUM_GENERATIONS_PER_RUN} of run {self.run_count}")
                 status_data["current_generation"] = gen + 1
                 status_data["pages_evaluated"] = status_data.get("pages_evaluated", 0) + len(population)
                 
+                print(f"[GA DEBUG] Evaluating population of {len(population)} pages...")
                 evaluated = evaluate_population(population)
+                print(f"[GA DEBUG] Population evaluated. Best score: {max(evaluated, key=lambda x: x['score'])['score']:.4f}")
                 
                 # Track best in this generation
                 gen_best = max(evaluated, key=lambda x: x["score"])
