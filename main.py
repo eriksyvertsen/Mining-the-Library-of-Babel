@@ -813,8 +813,7 @@ def diagnostics():
         ga_status=ga_status,
         ga_status_class=ga_status_class,
         ga_status_text=ga_status_text,
-        current_run=```text
-status_data.get("current_run", 0),
+        current_run=status_data.get("current_run", 0),
         current_generation=status_data.get("current_generation", 0),
         pages_evaluated=status_data.get("pages_evaluated", 0),
         best_score=status_data.get("best_score_this_run", 0.0),
