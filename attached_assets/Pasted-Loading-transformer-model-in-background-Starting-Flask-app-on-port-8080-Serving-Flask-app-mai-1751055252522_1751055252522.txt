@@ -1,0 +1,126 @@
+Loading transformer model in background...
+Starting Flask app on port 8080
+ * Serving Flask app 'main'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.31.128.73:8080
+Press CTRL+C to quit
+Model loaded.
+172.31.128.73 - - [27/Jun/2025 20:09:40] "GET / HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:41] "GET /api/status HTTP/1.1" 200 -
+Background GA worker started.
+172.31.128.73 - - [27/Jun/2025 20:09:43] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:45] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:47] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:49] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:51] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:53] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:55] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:57] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:09:59] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:00] "GET /diagnostics HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:01] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:33] "GET / HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:34] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:36] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:38] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:40] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:41] "GET /leaderboard HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:48] "GET / HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:48] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:50] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:52] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:54] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:56] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:10:59] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:00] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:02] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:04] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:06] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:08] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:10] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:12] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:14] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:16] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:18] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:20] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:23] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:24] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:26] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:29] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:30] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:33] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:34] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:36] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:38] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:40] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:42] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:44] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:46] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:48] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:50] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:52] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:54] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:56] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:11:59] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:00] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:03] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:04] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:06] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:09] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:10] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:13] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:14] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:16] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:18] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:20] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:22] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:24] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:26] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:29] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:30] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:33] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:34] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:36] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:39] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:40] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:43] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:44] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:46] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:49] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:50] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:52] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:54] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:56] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:12:58] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:00] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:02] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:04] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:06] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:08] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:10] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:13] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:14] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:16] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:19] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:20] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:22] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:24] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:26] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:28] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:30] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:32] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:34] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:36] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:39] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:40] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:43] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:44] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:46] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:49] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:50] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:53] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:54] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:13:56] "GET /api/status HTTP/1.1" 200 -
