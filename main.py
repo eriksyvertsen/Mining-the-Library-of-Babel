@@ -343,7 +343,16 @@ evolution_history = load_evolution_history()
 def api_status():
     # Combine status data with evolution history for response
     response = dict(status_data)  # Convert ObservedDict to regular dict
-    response["evolution_history"] = evolution_history
+    
+    # Convert evolution_history to plain Python list/dicts
+    evolution_history_plain = []
+    for item in evolution_history:
+        if hasattr(item, 'items'):  # It's a dict-like object
+            evolution_history_plain.append(dict(item))
+        else:
+            evolution_history_plain.append(item)
+    
+    response["evolution_history"] = evolution_history_plain
     return response
 
 @app.route("/leaderboard")
