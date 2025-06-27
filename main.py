@@ -64,13 +64,20 @@ HOME_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Library of Babel - Continuous Miner</title>
+  <title>Library of Babel - Evolutionary Semantic Miner</title>
 </head>
 <body style="background: #000; color: #0f0; font-family: monospace; margin:0; padding:20px;">
-  <h1>Project Tommyknockers</h1>
-  <p>This application explores the Library of Babel using genetic algorithms and machine learning.</p> <p> The Library of Babel is a Borges inspried website (libraryofbabel.info) that generates pseudo-random text pages based on unique page IDs. Project Tommyknockers attempts to mine the Library of Babel for meaningful text within this vast space of randomness by: <ul> <li>Generating a random population of page IDs.</li> <li>Retrieving and scoring each page’s coherence using a language model.</li> <li>Keeping the best-performing pages, mutating them, and repeating.</li> </ul> <p>This is essentially an AI-powered exploration tool trying to find needles (coherent text) in an astronomically large haystack (the Library of Babel’s random text space). The prize? Every book, poem or idea that ever has been or ever will be written lies within the Library of Babel...waiting for a clever librarian.</p> 
-  <p>Over time, we hope to stumble on rare "pockets" of meaningful text. Top discoveries appear in a running scoreboard.</p>
-  <p>Visit <a href="/leaderboard" style="color: #0ff;">the leaderboard</a> to see the current best hits discovered so far.</p>
+  <h1>Library of Babel</h1>
+  <p>This application explores the Library of Babel using genetic algorithms and machine learning. 
+
+The Library of Babel is a Borges inspried website (libraryofbabel.info) that generates pseudo-random text pages based on unique page IDs. Project Tommyknockers attempts to mine the Library of Babel for meaningful text within this vast space of randomness by:
+  <ul>
+    <li>Generating a random population of page IDs.</li>
+    <li>Retrieving and scoring each page’s coherence using a language model.</li>
+    <li>Keeping the best-performing pages, mutating them, and repeating.</li>
+  </ul>
+ This is essentially an AI-powered exploration tool trying to find needles (coherent text) in an astronomically large haystack (the Library of Babel’s random text space). The prize? Every book, poem or idea that ever has been or ever will be written lies within the Library of Babel...waiting for a clever librarian.</p>
+  <p>Top discoveries appear in a running scoreboard. Visit the <a href="/leaderboard" style="color: #0ff;">the leaderboard</a>  to see the current best hits discovered so far.</p>
 </body>
 </html>
 """
@@ -373,8 +380,6 @@ ga_thread.start()
 # RUN FLASK
 ###############################
 if __name__ == "__main__":
-    # Get port from environment variable or default to 80
-    port = int(os.getenv('PORT', 80))
-    print(f"Starting Flask app on port {port}")
-    # Run with minimal config to start quickly
-    app.run(host='0.0.0.0', port=port, threaded=True)
+    # Use port 80 for deployment
+    print("Starting Flask app on port 8080")
+    app.run(host='0.0.0.0', port=8080, threaded=True)
