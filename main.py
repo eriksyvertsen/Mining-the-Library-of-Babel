@@ -187,7 +187,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
           document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(3);
 
           // Update progress bar
-          const progressPercent = (data.current_generation / {{ NUM_GENERATIONS_PER_RUN }}) * 100;
+          const progressPercent = (data.current_generation / 2) * 100;
           document.getElementById('generation-progress').style.width = progressPercent + '%';
 
           // Update best page
