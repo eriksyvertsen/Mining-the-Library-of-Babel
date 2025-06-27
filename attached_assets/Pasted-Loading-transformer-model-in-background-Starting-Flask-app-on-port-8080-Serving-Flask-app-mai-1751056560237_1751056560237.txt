@@ -1,0 +1,44 @@
+Loading transformer model in background...
+Starting Flask app on port 8080
+ * Serving Flask app 'main'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.31.128.73:8080
+Press CTRL+C to quit
+172.31.128.73 - - [27/Jun/2025 20:35:29] "GET / HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 20:35:29] "GET /api/status HTTP/1.1" 200 -
+Model loaded.
+Background GA worker started.
+[GA DEBUG] Starting generation 1/2 of run 408
+[GA DEBUG] Evaluating population of 10 pages...
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?de880f55a95fc91c9b5e590278a56f9d
+[PAGE FETCH] Response status: 200
+[PAGE ERROR] No 'page' div found for de880f55...
+[PAGE ERROR] Found divs with IDs: ['real']
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?c3eef3255b41d3cdc16c45d37923766d
+[PAGE FETCH] Response status: 500
+[PAGE ERROR] HTTP 500 for page c3eef325...
+[PAGE ERROR] Response content preview: <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>500 Internal Server Error</title>
+</head><body>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error or
+mis
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?fd643ccf37499eed4fa9f15942258f0c
+[PAGE FETCH] Response status: 500
+[PAGE ERROR] HTTP 500 for page fd643ccf...
+[PAGE ERROR] Response content preview: <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>500 Internal Server Error</title>
+</head><body>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error or
+mis
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?82e5e97ab3257c9788313de903de6cfc
+[PAGE FETCH] Response status: 500
+[PAGE ERROR] HTTP 500 for page 82e5e97a...
+[PAGE ERROR] Response content preview: <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
