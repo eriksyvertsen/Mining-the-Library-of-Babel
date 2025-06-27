@@ -60,6 +60,62 @@ app = Flask(__name__)
 def health():
     return "OK", 200
 
+@app.route("/test-page")
+def test_page():
+    """Test endpoint to validate page fetching with a known Library of Babel page"""
+    from flask import request
+    
+    # Use a known page ID that should work
+    test_page_id = request.args.get('page_id', 'test123')
+    
+    html = f"""
+    <html>
+    <head><title>Test Page Fetching</title>
+    <style>body{{font-family:monospace;background:#000;color:#0f0;padding:20px;}}</style>
+    </head>
+    <body>
+    <h1>Test Page Fetching</h1>
+    <p>Testing page fetch for ID: {test_page_id}</p>
+    """
+    
+    if test_page_id == 'test123':
+        # Return test content
+        test_text = "This is a test page with meaningful content to validate the scoring system."
+        score, embedding = get_semantic_score_and_embedding(test_text)
+        html += f"""
+        <h3>Test Mode (not fetching from Library of Babel)</h3>
+        <p><strong>Test Text:</strong> {test_text}</p>
+        <p><strong>Score:</strong> {score}</p>
+        <p><strong>Embedding Available:</strong> {embedding is not None}</p>
+        """
+    else:
+        # Try to fetch from Library of Babel
+        page_text = get_page_text(test_page_id)
+        if page_text:
+            score, embedding = get_semantic_score_and_embedding(page_text)
+            html += f"""
+            <h3>Retrieved from Library of Babel</h3>
+            <p><strong>Text Length:</strong> {len(page_text)} characters</p>
+            <p><strong>First 200 chars:</strong> {page_text[:200]}...</p>
+            <p><strong>Score:</strong> {score}</p>
+            <p><strong>Embedding Available:</strong> {embedding is not None}</p>
+            """
+        else:
+            html += f"""
+            <h3>Failed to Retrieve Page</h3>
+            <p>Could not get content for page ID: {test_page_id}</p>
+            """
+    
+    html += """
+    <p><a href="/test-page?page_id=test123">Test with sample content</a></p>
+    <p><a href="/test-page?page_id=1">Test with page ID "1"</a></p>
+    <p><a href="/">Back to Home</a></p>
+    </body>
+    </html>
+    """
+    
+    return html
+
 @app.route("/test-scoring")
 def test_scoring():
     """Test the scoring system with known content"""
@@ -612,11 +668,12 @@ generation_details = load_generation_details()
 def api_status():
     from flask import jsonify
     import math
+    import json
 
     try:
         # Ensure all data is JSON serializable and handle NaN/Inf values
         best_score = status_data.get("best_score_this_run", 0.0)
-        if math.isnan(best_score) or math.isinf(best_score):
+        if not isinstance(best_score, (int, float)) or math.isnan(best_score) or math.isinf(best_score):
             best_score = 0.0
 
         response = {
@@ -625,30 +682,59 @@ def api_status():
             "current_generation": int(status_data.get("current_generation", 0)),
             "pages_evaluated": int(status_data.get("pages_evaluated", 0)),
             "best_score_this_run": float(best_score),
-            "best_page_id": status_data.get("best_page_id", None)
+            "best_page_id": str(status_data.get("best_page_id", "")) if status_data.get("best_page_id") else None
         }
 
-        # Convert evolution_history to plain Python list/dicts
+        # Convert evolution_history to plain Python list/dicts with better error handling
         evolution_history_plain = []
-        for item in evolution_history:
+        for item in evolution_history[-50:]:  # Only send last 50 items to reduce payload
             try:
-                score = float(item.get("score", 0.0))
-                if math.isnan(score) or math.isinf(score):
+                if not isinstance(item, dict):
+                    continue
+                    
+                score = item.get("score", 0.0)
+                if not isinstance(score, (int, float)) or math.isnan(score) or math.isinf(score):
                     score = 0.0
 
+                generation = item.get("generation", 0)
+                if not isinstance(generation, (int, float)):
+                    generation = 0
+
+                run = item.get("run", 0)
+                if not isinstance(run, (int, float)):
+                    run = 0
+
                 evolution_history_plain.append({
-                    "generation": int(item.get("generation", 0)),
-                    "score": score,
-                    "run": int(item.get("run", 0))
+                    "generation": int(generation),
+                    "score": float(score),
+                    "run": int(run)
                 })
-            except (TypeError, AttributeError, ValueError):
-                # Skip malformed entries
+            except (TypeError, AttributeError, ValueError) as e:
+                print(f"[API ERROR] Skipping malformed evolution history entry: {e}")
                 continue
 
         response["evolution_history"] = evolution_history_plain
+        
+        # Test JSON serialization before returning
+        try:
+            json.dumps(response)
+        except (TypeError, ValueError) as e:
+            print(f"[API ERROR] JSON serialization failed: {e}")
+            # Return minimal safe response
+            return jsonify({
+                "status": "JSON Error",
+                "current_run": 0,
+                "current_generation": 0,
+                "pages_evaluated": 0,
+                "best_score_this_run": 0.0,
+                "best_page_id": None,
+                "evolution_history": []
+            })
+        
         return jsonify(response)
 
     except Exception as e:
+        print(f"[API ERROR] Exception in api_status: {e}")
         # Return a safe fallback response if anything goes wrong
         return jsonify({
             "status": "Error in API",
@@ -761,19 +847,33 @@ def get_page_text(page_id: str) -> str:
         if response.status_code == 200:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Try multiple selectors for the page content
             page_div = soup.find("div", {"id": "page"})
+            if not page_div:
+                page_div = soup.find("div", {"id": "real"})  # Alternative selector
+            if not page_div:
+                # Try to find any div with text content
+                content_divs = soup.find_all("div")
+                for div in content_divs:
+                    text = div.get_text().strip()
+                    if len(text) > 100:  # Arbitrary threshold for meaningful content
+                        page_div = div
+                        break
 
             if page_div:
-                text = page_div.get_text()
+                text = page_div.get_text().strip()
                 print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}...")
                 print(f"[PAGE SAMPLE] First 100 chars: '{text[:100]}'")
                 return text
             else:
-                print(f"[PAGE ERROR] No 'page' div found for {page_id[:8]}...")
+                print(f"[PAGE ERROR] No content div found for {page_id[:8]}...")
                 # Log what divs we did find
                 all_divs = soup.find_all("div")
                 div_ids = [d.get("id") for d in all_divs if d.get("id")]
                 print(f"[PAGE ERROR] Found divs with IDs: {div_ids}")
+                # Log a sample of the HTML to understand the structure
+                print(f"[PAGE ERROR] HTML sample: {response.text[:500]}")
         else:
             print(f"[PAGE ERROR] HTTP {response.status_code} for page {page_id[:8]}...")
             print(f"[PAGE ERROR] Response content preview: {response.text[:200]}")
@@ -1021,26 +1121,27 @@ class GAWorker(threading.Thread):
             status_data["status"] = f"Running generation-based evolution (Run {self.run_count})"
             save_status_data(status_data)
 
-            # TEST MODE: For the first few runs, use known good content to test scoring
-            if self.run_count <= 3:
+            # TEST MODE: Use known good content to test scoring
+            if self.run_count <= 5:  # Extend test mode to 5 runs
                 print(f"[GA TEST] Running in TEST MODE for run {self.run_count}")
                 # Use test content instead of random pages
                 test_texts = [
-                    "The quick brown fox jumps over the lazy dog.",
-                    "Once upon a time in a galaxy far away.",
-                    "To be or not to be, that is the question.",
-                    "In the beginning was the Word.",
-                    "It was the best of times, it was the worst of times.",
-                    "Call me Ishmael.",
-                    "In a hole in the ground there lived a hobbit.",
-                    "All happy families are alike.",
-                    "It is a truth universally acknowledged.",
-                    "Last night I dreamt I went to Manderley again."
+                    "The quick brown fox jumps over the lazy dog in the meadow.",
+                    "Once upon a time in a galaxy far away, there lived a wise old wizard.",
+                    "To be or not to be, that is the question Shakespeare posed.",
+                    "In the beginning was the Word, and the Word was with God.",
+                    "It was the best of times, it was the worst of times in history.",
+                    "Call me Ishmael, said the narrator of Moby Dick.",
+                    "In a hole in the ground there lived a hobbit named Bilbo.",
+                    "All happy families are alike, but every unhappy family differs.",
+                    "It is a truth universally acknowledged that a single man must want a wife.",
+                    "Last night I dreamt I went to Manderley again in my sleep."
                 ]
                 population = test_texts
             else:
-                # 1. Initialize population with random page IDs
-                population = [random_page_id() for _ in range(POPULATION_SIZE)]
+                # Use simple page IDs that are more likely to work
+                # Try shorter, simpler page IDs
+                population = [f"{i:032x}" for i in range(POPULATION_SIZE)]
 
             run_best_score = 0.0
             run_best_page = None
