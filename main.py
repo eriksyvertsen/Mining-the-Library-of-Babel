@@ -168,7 +168,7 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
     </div>
   </div>
 
-  <p>Top discoveries appear in a running scoreboard. Visit the <a href="/leaderboard">leaderboard</a> to see the current best hits discovered so far.</p>
+  <p>Top discoveries appear in a running scoreboard. Visit the <a href="/leaderboard">leaderboard</a> to see the current best hits discovered so far, or check the <a href="/diagnostics">diagnostics page</a> for detailed system analysis.</p>
 
   <script>
     function updateStatus() {
@@ -299,7 +299,183 @@ LEADERBOARD_TEMPLATE = """
     </tr>
     {% endfor %}
   </table>
-  <p style="text-align:center;margin-top:20px;"><a href="/">Back Home</a></p>
+  <p style="text-align:center;margin-top:20px;"><a href="/">Back Home</a> | <a href="/diagnostics">Diagnostics</a></p>
+</body>
+</html>
+"""
+
+DIAGNOSTICS_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Library of Babel - Diagnostics</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      margin: 0;
+      padding: 20px;
+      font-size: 12px;
+    }
+    .diagnostic-section {
+      border: 1px solid #0f0;
+      margin: 15px 0;
+      padding: 15px;
+      background: #001100;
+    }
+    .diagnostic-section h3 {
+      color: #0ff;
+      margin-top: 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+    }
+    th, td {
+      border: 1px solid #0f0;
+      padding: 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #002200;
+      color: #0ff;
+    }
+    a {
+      color: #0ff;
+    }
+    .code-block {
+      background: #000;
+      border: 1px solid #333;
+      padding: 10px;
+      margin: 5px 0;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .status-good { color: #0f0; }
+    .status-warning { color: #ff0; }
+    .status-error { color: #f00; }
+    .refresh-btn {
+      background: #002200;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .refresh-btn:hover {
+      background: #004400;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 System Diagnostics</h1>
+  <button class="refresh-btn" onclick="location.reload()">Refresh Data</button>
+  
+  <div class="diagnostic-section">
+    <h3>📊 Current System Status</h3>
+    <table>
+      <tr><th>Parameter</th><th>Value</th><th>Status</th></tr>
+      <tr><td>Model Loaded</td><td>{{ model_status }}</td><td class="{{ model_status_class }}">{{ model_status_text }}</td></tr>
+      <tr><td>GA Worker Running</td><td>{{ ga_status }}</td><td class="{{ ga_status_class }}">{{ ga_status_text }}</td></tr>
+      <tr><td>Current Run</td><td>{{ current_run }}</td><td>-</td></tr>
+      <tr><td>Current Generation</td><td>{{ current_generation }}</td><td>-</td></tr>
+      <tr><td>Total Pages Evaluated</td><td>{{ pages_evaluated }}</td><td>-</td></tr>
+      <tr><td>Best Score This Run</td><td>{{ best_score }}</td><td>-</td></tr>
+    </table>
+  </div>
+
+  <div class="diagnostic-section">
+    <h3>⚙️ Model Configuration</h3>
+    <table>
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td>Population Size</td><td>{{ population_size }}</td></tr>
+      <tr><td>Generations Per Run</td><td>{{ generations_per_run }}</td></tr>
+      <tr><td>Keep Ratio</td><td>{{ keep_ratio }}</td></tr>
+      <tr><td>Mutation Rate</td><td>{{ mutation_rate }}</td></tr>
+      <tr><td>Page ID Length</td><td>{{ page_id_length }}</td></tr>
+      <tr><td>Request Timeout</td><td>{{ request_timeout }}s</td></tr>
+      <tr><td>Max Text Length</td><td>{{ max_text_length }}</td></tr>
+      <tr><td>Max Embedding Tokens</td><td>{{ max_embed_tokens }}</td></tr>
+    </table>
+  </div>
+
+  <div class="diagnostic-section">
+    <h3>📋 Recent Generation Details</h3>
+    <p>Last {{ recent_generations|length }} generations with detailed results:</p>
+    <table>
+      <tr>
+        <th>Run</th>
+        <th>Gen</th>
+        <th>Best Score</th>
+        <th>Best Page ID</th>
+        <th>Link</th>
+        <th>Text Sample</th>
+        <th>Population Details</th>
+      </tr>
+      {% for gen in recent_generations %}
+      <tr>
+        <td>{{ gen.run }}</td>
+        <td>{{ gen.generation }}</td>
+        <td>{{ gen.best_score | round(4) }}</td>
+        <td style="font-size: 10px;">{{ gen.best_page_id }}</td>
+        <td><a href="https://libraryofbabel.info/book.cgi?{{ gen.best_page_id }}" target="_blank">View</a></td>
+        <td style="max-width: 200px; overflow: hidden;">{{ gen.text_sample }}</td>
+        <td>
+          <details>
+            <summary>{{ gen.population_size }} pages</summary>
+            <div class="code-block">{{ gen.population_details }}</div>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div class="diagnostic-section">
+    <h3>🔍 API Response Test</h3>
+    <p>Raw API response from /api/status:</p>
+    <div id="api-response" class="code-block">Loading...</div>
+    <button class="refresh-btn" onclick="testApiResponse()">Test API</button>
+  </div>
+
+  <div class="diagnostic-section">
+    <h3>📈 Evolution History Analysis</h3>
+    <p>Statistical analysis of {{ evolution_history|length }} recorded generations:</p>
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Total Generations</td><td>{{ stats.total_generations }}</td></tr>
+      <tr><td>Average Score</td><td>{{ stats.avg_score | round(4) }}</td></tr>
+      <tr><td>Best Score Ever</td><td>{{ stats.max_score | round(4) }}</td></tr>
+      <tr><td>Worst Score</td><td>{{ stats.min_score | round(4) }}</td></tr>
+      <tr><td>Score Standard Deviation</td><td>{{ stats.std_score | round(4) }}</td></tr>
+      <tr><td>Recent Trend (last 10)</td><td class="{{ stats.trend_class }}">{{ stats.trend_text }}</td></tr>
+    </table>
+  </div>
+
+  <p style="text-align:center;margin-top:20px;">
+    <a href="/">Home</a> | <a href="/leaderboard">Leaderboard</a>
+  </p>
+
+  <script>
+    function testApiResponse() {
+      fetch('/api/status')
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById('api-response').textContent = text;
+        })
+        .catch(err => {
+          document.getElementById('api-response').textContent = 'Error: ' + err.message;
+        });
+    }
+    
+    // Test API on page load
+    testApiResponse();
+  </script>
 </body>
 </html>
 """
@@ -311,6 +487,7 @@ def home():
 # Global status tracking with persistence
 STATUS_DB_KEY = "status_data"
 EVOLUTION_HISTORY_DB_KEY = "evolution_history"
+GENERATION_DETAILS_DB_KEY = "generation_details"
 
 def load_status_data():
     """Load status data from DB or return defaults"""
@@ -335,9 +512,18 @@ def save_evolution_history(history):
     """Save evolution history to DB"""
     db[EVOLUTION_HISTORY_DB_KEY] = history
 
+def load_generation_details():
+    """Load detailed generation results from DB"""
+    return list(db.get(GENERATION_DETAILS_DB_KEY, []))
+
+def save_generation_details(details):
+    """Save detailed generation results to DB"""
+    db[GENERATION_DETAILS_DB_KEY] = details
+
 # Initialize from DB
 status_data = load_status_data()
 evolution_history = load_evolution_history()
+generation_details = load_generation_details()
 
 @app.route("/api/status")
 def api_status():
@@ -378,6 +564,83 @@ def leaderboard():
     # Sort by score descending
     hits_sorted = sorted(hits, key=lambda x: x["score"], reverse=True)
     return render_template_string(LEADERBOARD_TEMPLATE, hits=hits_sorted, max_stored=MAX_STORED_HITS)
+
+@app.route("/diagnostics")
+def diagnostics():
+    import statistics
+    
+    # System status
+    model_loaded = model is not None and tokenizer is not None
+    model_status = "✓ Loaded" if model_loaded else "✗ Not Loaded"
+    model_status_class = "status-good" if model_loaded else "status-error"
+    model_status_text = "OK" if model_loaded else "ERROR"
+    
+    # GA Worker status (simplified check)
+    ga_status = "✓ Running" if status_data.get("current_run", 0) > 0 else "? Unknown"
+    ga_status_class = "status-good" if status_data.get("current_run", 0) > 0 else "status-warning"
+    ga_status_text = "OK" if status_data.get("current_run", 0) > 0 else "UNKNOWN"
+    
+    # Recent generation details
+    recent_gens = load_generation_details()[-20:]  # Last 20 generations
+    
+    # Evolution history statistics
+    evo_hist = load_evolution_history()
+    stats = {
+        "total_generations": len(evo_hist),
+        "avg_score": statistics.mean([h["score"] for h in evo_hist]) if evo_hist else 0,
+        "max_score": max([h["score"] for h in evo_hist]) if evo_hist else 0,
+        "min_score": min([h["score"] for h in evo_hist]) if evo_hist else 0,
+        "std_score": statistics.stdev([h["score"] for h in evo_hist]) if len(evo_hist) > 1 else 0
+    }
+    
+    # Trend analysis
+    if len(evo_hist) >= 10:
+        recent_scores = [h["score"] for h in evo_hist[-10:]]
+        older_scores = [h["score"] for h in evo_hist[-20:-10]] if len(evo_hist) >= 20 else recent_scores
+        recent_avg = statistics.mean(recent_scores)
+        older_avg = statistics.mean(older_scores)
+        
+        if recent_avg > older_avg * 1.1:
+            stats["trend_text"] = "Improving ↗"
+            stats["trend_class"] = "status-good"
+        elif recent_avg < older_avg * 0.9:
+            stats["trend_text"] = "Declining ↘"
+            stats["trend_class"] = "status-warning"
+        else:
+            stats["trend_text"] = "Stable →"
+            stats["trend_class"] = "status-good"
+    else:
+        stats["trend_text"] = "Not enough data"
+        stats["trend_class"] = "status-warning"
+    
+    return render_template_string(DIAGNOSTICS_TEMPLATE,
+        # System status
+        model_status=model_status,
+        model_status_class=model_status_class,
+        model_status_text=model_status_text,
+        ga_status=ga_status,
+        ga_status_class=ga_status_class,
+        ga_status_text=ga_status_text,
+        current_run=status_data.get("current_run", 0),
+        current_generation=status_data.get("current_generation", 0),
+        pages_evaluated=status_data.get("pages_evaluated", 0),
+        best_score=status_data.get("best_score_this_run", 0.0),
+        
+        # Configuration
+        population_size=POPULATION_SIZE,
+        generations_per_run=NUM_GENERATIONS_PER_RUN,
+        keep_ratio=KEEP_RATIO,
+        mutation_rate=MUTATION_RATE,
+        page_id_length=PAGE_ID_LENGTH,
+        request_timeout=REQUEST_TIMEOUT,
+        max_text_length=MAX_TEXT_LENGTH,
+        max_embed_tokens=MAX_EMBED_TOKENS,
+        
+        # Data
+        recent_generations=recent_gens,
+        evolution_history=evo_hist,
+        stats=stats
+    )
 
 ###############################
 # GA & SCRAPING LOGIC
@@ -625,13 +888,31 @@ class GAWorker(threading.Thread):
                     "run": self.run_count
                 })
                 
+                # Add detailed generation information for diagnostics
+                generation_details.append({
+                    "run": self.run_count,
+                    "generation": gen + 1,
+                    "global_generation": global_generation,
+                    "best_score": gen_best["score"],
+                    "best_page_id": gen_best["page_id"],
+                    "text_sample": gen_best["snippet"][:100] + "..." if len(gen_best["snippet"]) > 100 else gen_best["snippet"],
+                    "population_size": len(evaluated),
+                    "population_details": "\n".join([f"ID: {e['page_id'][:12]}... Score: {e['score']:.4f}" for e in sorted(evaluated, key=lambda x: x["score"], reverse=True)[:5]]) + f"\n... and {len(evaluated)-5} more" if len(evaluated) > 5 else "\n".join([f"ID: {e['page_id'][:12]}... Score: {e['score']:.4f}" for e in sorted(evaluated, key=lambda x: x["score"], reverse=True)]),
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+                
                 # Keep only last 200 points for better visualization
                 if len(evolution_history) > 200:
                     evolution_history = evolution_history[-200:]
                 
+                # Keep only last 50 detailed generations
+                if len(generation_details) > 50:
+                    generation_details = generation_details[-50:]
+                
                 # Save status and history after each generation
                 save_status_data(status_data)
                 save_evolution_history(evolution_history)
+                save_generation_details(generation_details)
                 
                 parents = select_parents(evaluated, KEEP_RATIO)
                 new_pop = breed_population(parents, POPULATION_SIZE)
