@@ -308,20 +308,43 @@ LEADERBOARD_TEMPLATE = """
 def home():
     return render_template_string(HOME_HTML, NUM_GENERATIONS_PER_RUN=NUM_GENERATIONS_PER_RUN)
 
-# Global status tracking
-status_data = {
-    "status": "Initializing...",
-    "current_run": 0,
-    "current_generation": 0,
-    "pages_evaluated": 0,
-    "best_score_this_run": 0.0,
-    "best_page_id": None,
-    "evolution_history": []
-}
+# Global status tracking with persistence
+STATUS_DB_KEY = "status_data"
+EVOLUTION_HISTORY_DB_KEY = "evolution_history"
+
+def load_status_data():
+    """Load status data from DB or return defaults"""
+    return db.get(STATUS_DB_KEY, {
+        "status": "Initializing...",
+        "current_run": 0,
+        "current_generation": 0,
+        "pages_evaluated": 0,
+        "best_score_this_run": 0.0,
+        "best_page_id": None
+    })
+
+def save_status_data(data):
+    """Save status data to DB"""
+    db[STATUS_DB_KEY] = data
+
+def load_evolution_history():
+    """Load evolution history from DB"""
+    return list(db.get(EVOLUTION_HISTORY_DB_KEY, []))
+
+def save_evolution_history(history):
+    """Save evolution history to DB"""
+    db[EVOLUTION_HISTORY_DB_KEY] = history
+
+# Initialize from DB
+status_data = load_status_data()
+evolution_history = load_evolution_history()
 
 @app.route("/api/status")
 def api_status():
-    return status_data
+    # Combine status data with evolution history for response
+    response = status_data.copy()
+    response["evolution_history"] = evolution_history
+    return response
 
 @app.route("/leaderboard")
 def leaderboard():
@@ -503,7 +526,10 @@ class GAWorker(threading.Thread):
 
     def run(self):
         """Continually run small GA searches, store top hits in DB."""
-        global status_data
+        global status_data, evolution_history
+        
+        # Resume from last run count
+        self.run_count = status_data.get("current_run", 0)
         
         while self.running:
             # Clear memory before each run
@@ -514,6 +540,7 @@ class GAWorker(threading.Thread):
             self.run_count += 1
             status_data["current_run"] = self.run_count
             status_data["status"] = f"Running generation-based evolution (Run {self.run_count})"
+            save_status_data(status_data)
 
             # 1. Initialize population
             population = [random_page_id() for _ in range(POPULATION_SIZE)]
@@ -537,15 +564,19 @@ class GAWorker(threading.Thread):
                 
                 # Add to evolution history with global generation counter
                 global_generation = (self.run_count - 1) * NUM_GENERATIONS_PER_RUN + gen + 1
-                status_data["evolution_history"].append({
+                evolution_history.append({
                     "generation": global_generation,
                     "score": gen_best["score"],
                     "run": self.run_count
                 })
                 
                 # Keep only last 200 points for better visualization
-                if len(status_data["evolution_history"]) > 200:
-                    status_data["evolution_history"] = status_data["evolution_history"][-200:]
+                if len(evolution_history) > 200:
+                    evolution_history = evolution_history[-200:]
+                
+                # Save status and history after each generation
+                save_status_data(status_data)
+                save_evolution_history(evolution_history)
                 
                 parents = select_parents(evaluated, KEEP_RATIO)
                 new_pop = breed_population(parents, POPULATION_SIZE)
@@ -558,6 +589,7 @@ class GAWorker(threading.Thread):
             try_update_leaderboard(final_evaluated)
 
             status_data["status"] = f"Completed Run {self.run_count} - Sleeping before next run"
+            save_status_data(status_data)
             # Short sleep to avoid spamming requests
             time.sleep(SLEEP_BETWEEN_RUNS)
 
@@ -576,8 +608,10 @@ def start_ga_worker():
     global status_data
     while model is None or tokenizer is None:
         status_data["status"] = "Loading AI model..."
+        save_status_data(status_data)
         time.sleep(1)
     status_data["status"] = "Model loaded - Starting evolution"
+    save_status_data(status_data)
     worker = GAWorker()
     worker.start()
     print("Background GA worker started.")
