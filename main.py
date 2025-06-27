@@ -802,8 +802,8 @@ def diagnostics():
             stats["trend_text"] = "Stable →"
             stats["trend_class"] = "status-good"
         else:
-            stats["trend_text"] = "Not enough data"
-            stats["trend_class"] = "status-warning"
+        stats["trend_text"] = "Not enough data"
+        stats["trend_class"] = "status-warning"
 
     return render_template_string(DIAGNOSTICS_TEMPLATE,
         # System status
