@@ -208,21 +208,23 @@ The Library of Babel is a Borges inspried website (libraryofbabel.info) that gen
 
       if (history.length === 0) return;
 
-      const maxScore = Math.max(...history.map(h => h.score), 1);
+      const maxScore = Math.max(...history.map(h => h.score), 0.1); // Minimum of 0.1 for scaling
       const graphWidth = graph.clientWidth;
-      const pointWidth = Math.max(2, graphWidth / Math.max(history.length, 50));
+      const displayHistory = history.slice(-50); // Show last 50 points
+      const pointWidth = Math.max(2, graphWidth / Math.max(displayHistory.length, 50));
 
-      history.slice(-50).forEach((point, index) => {
-        const height = (point.score / maxScore) * 180; // 180px max height
+      displayHistory.forEach((point, index) => {
+        const normalizedHeight = (point.score / maxScore) * 160; // 160px max height
+        const height = Math.max(normalizedHeight, 2); // Minimum 2px height to show all points
         const left = index * pointWidth;
 
         const pointEl = document.createElement('div');
         pointEl.className = 'evolution-point';
-        if (index === history.length - 1) pointEl.className += ' current-point';
+        if (index === displayHistory.length - 1) pointEl.className += ' current-point';
         pointEl.style.left = left + 'px';
         pointEl.style.height = height + 'px';
         pointEl.style.width = pointWidth + 'px';
-        pointEl.title = `Gen ${point.generation}: Score ${point.score.toFixed(3)}`;
+        pointEl.title = `Run ${point.run || 'N/A'} Gen ${point.generation}: Score ${point.score.toFixed(4)}`;
 
         graph.appendChild(pointEl);
       });
@@ -533,15 +535,17 @@ class GAWorker(threading.Thread):
                     status_data["best_score_this_run"] = run_best_score
                     status_data["best_page_id"] = run_best_page
                 
-                # Add to evolution history
+                # Add to evolution history with global generation counter
+                global_generation = (self.run_count - 1) * NUM_GENERATIONS_PER_RUN + gen + 1
                 status_data["evolution_history"].append({
-                    "generation": len(status_data["evolution_history"]) + 1,
-                    "score": gen_best["score"]
+                    "generation": global_generation,
+                    "score": gen_best["score"],
+                    "run": self.run_count
                 })
                 
-                # Keep only last 100 points
-                if len(status_data["evolution_history"]) > 100:
-                    status_data["evolution_history"] = status_data["evolution_history"][-100:]
+                # Keep only last 200 points for better visualization
+                if len(status_data["evolution_history"]) > 200:
+                    status_data["evolution_history"] = status_data["evolution_history"][-200:]
                 
                 parents = select_parents(evaluated, KEEP_RATIO)
                 new_pop = breed_population(parents, POPULATION_SIZE)
