@@ -1,0 +1,104 @@
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?bbbebbbbbbbbbbbb0cd1b30ab5351d8e (ID: bbbebbbbbbbb...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page bbbebbbb... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 811
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?3333333333333333aaaaaaaaaaaaaaaa (ID: 333333333333...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page 33333333... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 812
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?11111111111111110cd1b30ab5351d8e (ID: 111111111111...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page 11111111... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 813
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?00000000000000000cd1b30ab5351d8e (ID: 000000000000...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page 00000000... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 814
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?bbbbbbbbbbbbbbbb0000000000000009 (ID: bbbbbbbbbbbb...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page bbbbbbbb... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 815
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
+[SCORE DEBUG] Input text: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl...'
+[SCORE DEBUG] Text length: 1000, Words: 160
+[SCORE DEBUG] Alpha ratio: 0.3688, Avg word len: 19.0188, Unique ratio: 1.0000
+[SCORE DEBUG] Embedding norm: 1.365040
+[SCORE DEBUG] Token variance: 0.02060370
+[SCORE DEBUG] Norm component: 5.381883
+[SCORE DEBUG] Variance component: 6.165109
+[SCORE DEBUG] Text quality: 0.368750
+[SCORE DEBUG] Final score: 425.795341
+[SCORE DEBUG] ===================
+[PAGE FETCH] Attempting to fetch: https://libraryofbabel.info/book.cgi?33333333333333331111111111111111 (ID: 333333333333...)
+[PAGE FETCH] Response status: 200
+[PAGE WARNING] DUPLICATE CONTENT! Page 33333333... has same content as 11111111... (hash: 487ec0fb)
+[PAGE WARNING] Total duplicates seen: 816
+[PAGE ERROR] Too many duplicate pages - our page ID generation might be invalid!
+[PAGE SAMPLE] First 100 chars: 'e,ktdo.baefq ,z unqusiug..mvgxwni.ghyrharszlowrwmkhgyjt,e a qfjzp. fnutjzrp.qhkl
+.,kvghwklmu.k s,wfl'
+[SCORE DEBUG] ===================
