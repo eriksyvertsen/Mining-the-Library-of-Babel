@@ -1,0 +1,39 @@
+Loading transformer model in background...
+Starting Flask app on port 8080
+ * Serving Flask app 'main'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://172.31.128.73:8080
+Press CTRL+C to quit
+Model loaded.
+172.31.128.73 - - [27/Jun/2025 19:17:44] "GET / HTTP/1.1" 200 -
+Background GA worker started.
+172.31.128.73 - - [27/Jun/2025 19:17:44] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:17:46] "GET /api/status HTTP/1.1" 200 -
+Exception in thread Thread-7:
+Traceback (most recent call last):
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/home/runner/workspace/main.py", line 892, in run
+    generation_details.append({
+    ^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'generation_details' where it is not associated with a value
+172.31.128.73 - - [27/Jun/2025 19:17:48] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:17:51] "GET /diagnostics HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:17:51] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:23] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:24] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:31] "GET /diagnostics HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:31] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:31] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:51] "GET /diagnostics HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:18:52] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:03] "GET / HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:03] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:05] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:08] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:10] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:12] "GET /api/status HTTP/1.1" 200 -
+172.31.128.73 - - [27/Jun/2025 19:19:14] "GET /api/status HTTP/1.1" 200 -
