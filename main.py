@@ -839,7 +839,7 @@ def diagnostics():
 ###############################
 def get_page_text(page_id: str) -> str:
     url = f"https://libraryofbabel.info/book.cgi?{page_id}"
-    print(f"[PAGE FETCH] Attempting to fetch: {url}")
+    print(f"[PAGE FETCH] Attempting to fetch: {url} (ID: {page_id[:12]}...)")
     try:
         response = requests.get(url, timeout=REQUEST_TIMEOUT)
         print(f"[PAGE FETCH] Response status: {response.status_code}")
@@ -863,7 +863,10 @@ def get_page_text(page_id: str) -> str:
 
             if page_div:
                 text = page_div.get_text().strip()
-                print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}...")
+                # Calculate a simple hash to detect if we're getting the same content
+                import hashlib
+                content_hash = hashlib.md5(text.encode()).hexdigest()[:8]
+                print(f"[PAGE SUCCESS] Retrieved {len(text)} characters for page {page_id[:8]}... (hash: {content_hash})")
                 print(f"[PAGE SAMPLE] First 100 chars: '{text[:100]}'")
                 return text
             else:
@@ -1139,9 +1142,19 @@ class GAWorker(threading.Thread):
                 ]
                 population = test_texts
             else:
-                # Use simple page IDs that are more likely to work
-                # Try shorter, simpler page IDs
-                population = [f"{i:032x}" for i in range(POPULATION_SIZE)]
+                # Generate more diverse, realistic Library of Babel page IDs
+                # Use random hex strings with better entropy distribution
+                population = []
+                for _ in range(POPULATION_SIZE):
+                    # Generate truly random page IDs with mixed characters
+                    page_id = ''.join(random.choices('0123456789abcdef', k=32))
+                    # Ensure some variation by setting random positions to different values
+                    chars = list(page_id)
+                    for pos in random.sample(range(32), random.randint(5, 15)):
+                        chars[pos] = random.choice('0123456789abcdef')
+                    population.append(''.join(chars))
+                    
+                print(f"[GA DEBUG] Generated diverse population: {[p[:8] + '...' for p in population[:3]]}"))
 
             run_best_score = 0.0
             run_best_page = None
