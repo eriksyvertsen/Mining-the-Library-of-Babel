@@ -65,19 +65,173 @@ HOME_HTML = """
 <html>
 <head>
   <title>Library of Babel - Evolutionary Semantic Miner</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      margin: 0;
+      padding: 20px;
+    }
+    .status-panel {
+      border: 2px solid #0f0;
+      padding: 20px;
+      margin: 20px 0;
+      background: #001100;
+    }
+    .evolution-graph {
+      height: 200px;
+      border: 1px solid #0f0;
+      background: #000;
+      position: relative;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #001100;
+      border: 1px solid #0f0;
+      margin: 10px 0;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0f0, #0ff);
+      transition: width 0.3s ease;
+    }
+    .metric {
+      display: inline-block;
+      margin: 5px 15px 5px 0;
+      padding: 5px 10px;
+      border: 1px solid #0f0;
+      background: #001100;
+    }
+    .blinking {
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+    .evolution-point {
+      position: absolute;
+      width: 3px;
+      background: #0ff;
+      bottom: 0;
+      transition: height 0.5s ease;
+    }
+    .current-point {
+      background: #ff0 !important;
+      box-shadow: 0 0 10px #ff0;
+    }
+    a { color: #0ff; }
+  </style>
 </head>
-<body style="background: #000; color: #0f0; font-family: monospace; margin:0; padding:20px;">
-  <h1>Library of Babel</h1>
+<body>
+  <h1>Library of Babel - Evolutionary Semantic Miner</h1>
   <p>This application explores the Library of Babel using genetic algorithms and machine learning. 
 
 The Library of Babel is a Borges inspried website (libraryofbabel.info) that generates pseudo-random text pages based on unique page IDs. Project Tommyknockers attempts to mine the Library of Babel for meaningful text within this vast space of randomness by:
   <ul>
     <li>Generating a random population of page IDs.</li>
-    <li>Retrieving and scoring each page’s coherence using a language model.</li>
+    <li>Retrieving and scoring each page's coherence using a language model.</li>
     <li>Keeping the best-performing pages, mutating them, and repeating.</li>
   </ul>
- This is essentially an AI-powered exploration tool trying to find needles (coherent text) in an astronomically large haystack (the Library of Babel’s random text space). The prize? Every book, poem or idea that ever has been or ever will be written lies within the Library of Babel...waiting for a clever librarian.</p>
-  <p>Top discoveries appear in a running scoreboard. Visit the <a href="/leaderboard" style="color: #0ff;">the leaderboard</a>  to see the current best hits discovered so far.</p>
+ This is essentially an AI-powered exploration tool trying to find needles (coherent text) in an astronomically large haystack (the Library of Babel's random text space). The prize? Every book, poem or idea that ever has been or ever will be written lies within the Library of Babel...waiting for a clever librarian.</p>
+
+  <div class="status-panel">
+    <h2>🧬 Evolution Status</h2>
+    <div id="status-indicator" class="blinking">● Initializing...</div>
+
+    <div style="margin: 15px 0;">
+      <div class="metric">Run: <span id="current-run">0</span></div>
+      <div class="metric">Generation: <span id="current-generation">0</span> / {{ NUM_GENERATIONS_PER_RUN }}</div>
+      <div class="metric">Pages Evaluated: <span id="pages-evaluated">0</span></div>
+      <div class="metric">Best Score: <span id="best-score">0.000</span></div>
+    </div>
+
+    <div>
+      <strong>Generation Progress:</strong>
+      <div class="progress-bar">
+        <div id="generation-progress" class="progress-fill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div>
+      <strong>Evolution History (Last 50 Generations):</strong>
+      <div id="evolution-graph" class="evolution-graph"></div>
+      <div style="font-size: 0.8em; color: #0ff;">Vertical axis: Semantic Score | Horizontal axis: Generation Progress</div>
+    </div>
+
+    <div id="current-best" style="margin-top: 15px; font-size: 0.9em;">
+      <strong>Current Best Page:</strong> <span id="best-page-id">None</span>
+    </div>
+  </div>
+
+  <p>Top discoveries appear in a running scoreboard. Visit the <a href="/leaderboard">leaderboard</a> to see the current best hits discovered so far.</p>
+
+  <script>
+    function updateStatus() {
+      fetch('/api/status')
+        .then(response => response.json())
+        .then(data => {
+          // Update status indicator
+          const statusEl = document.getElementById('status-indicator');
+          statusEl.textContent = '● ' + data.status;
+          statusEl.className = data.status.includes('Running') ? 'blinking' : '';
+
+          // Update metrics
+          document.getElementById('current-run').textContent = data.current_run;
+          document.getElementById('current-generation').textContent = data.current_generation;
+          document.getElementById('pages-evaluated').textContent = data.pages_evaluated;
+          document.getElementById('best-score').textContent = data.best_score_this_run.toFixed(3);
+
+          // Update progress bar
+          const progressPercent = (data.current_generation / {{ NUM_GENERATIONS_PER_RUN }}) * 100;
+          document.getElementById('generation-progress').style.width = progressPercent + '%';
+
+          // Update best page
+          const bestPageText = data.best_page_id ? 
+            `<a href="https://libraryofbabel.info/book.cgi?${data.best_page_id}" target="_blank">${data.best_page_id.substring(0, 12)}...</a>` :
+            'None';
+          document.getElementById('best-page-id').innerHTML = bestPageText;
+
+          // Update evolution graph
+          updateEvolutionGraph(data.evolution_history);
+        })
+        .catch(err => console.log('Status update failed:', err));
+    }
+
+    function updateEvolutionGraph(history) {
+      const graph = document.getElementById('evolution-graph');
+      graph.innerHTML = '';
+
+      if (history.length === 0) return;
+
+      const maxScore = Math.max(...history.map(h => h.score), 1);
+      const graphWidth = graph.clientWidth;
+      const pointWidth = Math.max(2, graphWidth / Math.max(history.length, 50));
+
+      history.slice(-50).forEach((point, index) => {
+        const height = (point.score / maxScore) * 180; // 180px max height
+        const left = index * pointWidth;
+
+        const pointEl = document.createElement('div');
+        pointEl.className = 'evolution-point';
+        if (index === history.length - 1) pointEl.className += ' current-point';
+        pointEl.style.left = left + 'px';
+        pointEl.style.height = height + 'px';
+        pointEl.style.width = pointWidth + 'px';
+        pointEl.title = `Gen ${point.generation}: Score ${point.score.toFixed(3)}`;
+
+        graph.appendChild(pointEl);
+      });
+    }
+
+    // Update every 2 seconds
+    setInterval(updateStatus, 2000);
+    updateStatus(); // Initial load
+  </script>
 </body>
 </html>
 """
