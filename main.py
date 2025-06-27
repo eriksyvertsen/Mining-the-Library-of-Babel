@@ -341,19 +341,33 @@ evolution_history = load_evolution_history()
 
 @app.route("/api/status")
 def api_status():
-    # Combine status data with evolution history for response
-    response = dict(status_data)  # Convert ObservedDict to regular dict
+    from flask import jsonify
+    
+    # Ensure all data is JSON serializable
+    response = {
+        "status": str(status_data.get("status", "Unknown")),
+        "current_run": int(status_data.get("current_run", 0)),
+        "current_generation": int(status_data.get("current_generation", 0)),
+        "pages_evaluated": int(status_data.get("pages_evaluated", 0)),
+        "best_score_this_run": float(status_data.get("best_score_this_run", 0.0)),
+        "best_page_id": status_data.get("best_page_id", None)
+    }
     
     # Convert evolution_history to plain Python list/dicts
     evolution_history_plain = []
     for item in evolution_history:
-        if hasattr(item, 'items'):  # It's a dict-like object
-            evolution_history_plain.append(dict(item))
-        else:
-            evolution_history_plain.append(item)
+        try:
+            evolution_history_plain.append({
+                "generation": int(item.get("generation", 0)),
+                "score": float(item.get("score", 0.0)),
+                "run": int(item.get("run", 0))
+            })
+        except (TypeError, AttributeError):
+            # Skip malformed entries
+            continue
     
     response["evolution_history"] = evolution_history_plain
-    return response
+    return jsonify(response)
 
 @app.route("/leaderboard")
 def leaderboard():
