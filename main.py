@@ -644,7 +644,7 @@ HOME_HTML = """
 <body>
   <h1>Library of Babel - Evolutionary Semantic Miner</h1>
   <p>This application explores the Library of Babel using genetic algorithms and machine learning.
-  The Library of Babel is a Borges inspried website (libraryofbabel.info) that generates pseudo-random text pages based on unique page IDs. Project Tommyknockers attempts to mine the Library of Babel for meaningful text within this vast space of randomness by:
+  The Library of Babel is a Borges inspried website (libraryofbabel.info) that generates pseudo-random text pages based on unique page IDs. This project attempts to mine the Library of Babel for meaningful text within this vast space of randomness by:
   <ul>
     <li>Generating a random population of page IDs.</li>
     <li>Retrieving and scoring each page's coherence using a language model.</li>
