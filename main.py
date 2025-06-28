@@ -1087,6 +1087,24 @@ def leaderboard():
     hits = load_top_hits()
     return render_template_string(LEADERBOARD_TEMPLATE, leaderboard=hits)
 
+@app.route("/reset-leaderboard")
+def reset_leaderboard():
+    """Reset the leaderboard by clearing all stored top hits"""
+    db[TOP_HITS_DB_KEY] = []
+    print("[LEADERBOARD] Leaderboard reset - all entries cleared")
+    return """
+    <html>
+    <head><title>Leaderboard Reset</title>
+    <style>body{font-family:monospace;background:#000;color:#0f0;padding:20px;}</style>
+    </head>
+    <body>
+    <h1>✅ Leaderboard Reset Complete</h1>
+    <p>All previous entries have been cleared. The leaderboard will now repopulate with new discoveries based on the current scoring algorithm.</p>
+    <p><a href="/leaderboard">View Leaderboard</a> | <a href="/">Back Home</a></p>
+    </body>
+    </html>
+    """
+
 @app.route("/diagnostics")
 def diagnostics():
     # Calculate stats
