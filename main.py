@@ -671,7 +671,7 @@ HOME_HTML = """
     </div>
 
     <div>
-      <strong>Evolution History (Last 50 Generations):</strong>
+      <strong>Evolution History (Last 500 Generations):</strong>
       <div id="evolution-graph" class="evolution-graph"></div>
       <div style="font-size: 0.8em; color: #0ff;">Vertical axis: Semantic Score | Horizontal axis: Generation Progress</div>
     </div>
@@ -721,8 +721,8 @@ HOME_HTML = """
       const graph = document.getElementById('evolution-graph');
       graph.innerHTML = ''; // Clear existing
 
-      // Take last 50 points
-      const points = history.slice(-50);
+      // Take last 500 points
+      const points = history.slice(-500);
       if (points.length === 0) return;
 
       // Find max score for scaling
@@ -829,6 +829,7 @@ LEADERBOARD_TEMPLATE = """
   </table>
   <p style="text-align:center;margin-top:20px;"><a href="/">Back Home</a> | <a href="/diagnostics">Diagnostics</a></p>
 </body>
+```python
 </html>
 """
 
@@ -1044,7 +1045,7 @@ def api_status():
 
         # Clean evolution history
         clean_history = []
-        for item in evolution_history[-50:]:  # Last 50 entries
+        for item in evolution_history[-500:]:  # Last 500 entries
             score = item.get("score", 0.0)
             if not isinstance(score, (int, float)) or math.isnan(score) or math.isinf(score):
                 score = 0.0
